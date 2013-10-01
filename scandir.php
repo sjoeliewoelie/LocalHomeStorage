@@ -114,7 +114,8 @@ public function OutFiles(){
           'name'=>$file,
           'type'=>'folder',
           'ico'=>'folder.png',
-          'folder'=>urlencode($this->getCurPath().'\\'.$file)
+          'folder'=>urlencode($this->getCurPath().'\\'.$file),
+          'directlink'=>$this->getCurPath().'/'.$file
         ];
       }else{
         $type = $finfo->file($this->path.DIRECTORY_SEPARATOR.$file);

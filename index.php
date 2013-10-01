@@ -77,7 +77,7 @@
 
                     </li>';
                   }else{
-                    echo '<li><a class="btn btn-default" style="height: 50px" href="https://oauth.vk.com/authorize?client_id=3791305&scope=audio,video&redirect_uri=http://'.$_SERVER['HTTP_HOST'].'/&display=popup&v=4.104&response_type=code">Sign in</a></li>';
+                    echo '<li><a style="height: 50px" href="https://oauth.vk.com/authorize?client_id=3791305&scope=audio,video&redirect_uri=http://'.$_SERVER['HTTP_HOST'].'/&display=popup&v=4.104&response_type=code">Sign in</a></li>';
                   }
                 ?>
               </ul>
@@ -120,6 +120,8 @@
         <div <?php
               if($file['type'] != 'folder'){ 
                 echo  'data-folder="'.$file['infolder'].'" data-mime="'.$file['mime'].'" data-name="'.$file['name'].'" data-file="'.$file['directlink'].'" data-type="'.$file['type'].'"';
+              }else{
+                echo  'data-file="'.$file['directlink'].'"';
               }
             ?> class="col-lg-4 fileitem">
            <?php
@@ -164,10 +166,10 @@
               ?>
               <?php
                 if($file['type'] == 'zip'){
-                  echo '<li><a tabindex="-1" href="#"><span class="glyphicon glyphicon-share-alt"></span> Unzip</a></li>';
+                  echo '<li><a class="btnextract" tabindex="-1" href="#"><span class="glyphicon glyphicon-share-alt"></span> Unzip</a></li>';
                 };
                 if($file['type'] == 'x-rar'){
-                  echo '<li><a tabindex="-1" href="#"><span class="glyphicon glyphicon-share-alt"></span> Extract</a></li>';
+                  echo '<li><a class="btnextract" tabindex="-1" href="#"><span class="glyphicon glyphicon-share-alt"></span> Extract</a></li>';
                 };
               ?>
               <?php
@@ -175,15 +177,11 @@
                   echo '<li><a tabindex="-1" href="'.$file['link'].'" download><span class="glyphicon glyphicon-download-alt"></span> Download</a></li>';
                 }
               ?>
-                  <?php
-                    if($file['type'] != 'folder'){
-                      echo '<li class="divider"></li>
-                            <li>
-                              <a tabindex="-1" class="delete" href="#"><span class="glyphicon glyphicon-trash"></span> Delete</a>
-                            </li>';
-                    }
-                  ?>
-                </li>
+                  <li class="divider"></li>
+                       <li>
+                          <a tabindex="-1" class="delete" href="#"><span class="glyphicon glyphicon-trash"></span> Delete</a>
+                        </li>
+                  </li>
             </ul>
           </div>
           </div>
@@ -409,6 +407,7 @@
           })
           $('.delete').click(function(event){$this.FDelete(event.currentTarget)});
           $('.btnrename').click(function(event){$this.ModalFileRename(event.currentTarget)});
+          $('.btnextract').click(function(event){$this.ModalFileExtract(event.currentTarget)});
           $('.img').click(function(event){$this.ModalFileOpen(event.currentTarget)});
         },
         FDelete: function(FButton){
@@ -511,7 +510,14 @@
         $text = $('.filetext').html();
         $('#btns').html('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>');
         $('.save').click(function(event){document.forms['editfile'].submit()});
-        $('.modal-body').html('<form class="input-group" style="margin:0px;" name="editfile" action="editfile.php" method="POST"><textarea  class="form-control" type="text" name="newtext">'+$text+'</textarea></input><input type="hidden" name="filefolder" value="'+$(FEModal).closest('.fileitem').data('file')+'"></form>');
+        $('.modal-body').html('<form class="input-group" style="margin:0px;" name="editfile" action="editfile.php" method="POST"><textarea  class="form-control" type="text" name="newtext">'+$text+'</textarea><input type="hidden" name="filefolder" value="'+$(FEModal).closest('.fileitem').data('file')+'"></form>');
+      },
+      ModalFileExtract: function(FModal){
+        $('#ModalFileLabel').html($(FModal).closest('.fileitem').data('name'));
+        $('.modal-footer').removeClass('fedit');
+        $('.save').click(function(event){document.forms['extractfile'].submit()});
+        $('.modal-body').html('<form style="margin:0px;" name="extractfile" action="extractfile.php" method="POST"><input type="hidden" name="zipfolder" value="'+$(FModal).closest('.fileitem').data('file')+'"><input type="hidden" name="filename" value="'+$(FModal).closest('.fileitem').data('name')+'">Extract to this folder of the same name?</form>');
+        $('#ModalFile').modal('toggle');
       }
       }
       jQuery(document).ready(function($) {
