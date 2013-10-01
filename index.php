@@ -250,10 +250,6 @@
       .col-lg-4 img{
         cursor: pointer;
         margin-top: 10px;
-        -moz-transition:all 0.3s ease;
-        -o-transition:all 0.3s ease;
-        -webkit-transition:all 0.3s ease;
-        transition:all 0.3s ease;
         height:115px;
         width:135px;
         opacity:0.69;
