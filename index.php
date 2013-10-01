@@ -112,6 +112,10 @@
       </ul>
       <!-- Example row of columns -->
       <div class="row">
+        <div class="col-lg-4 fileitem createfolder">
+           <img class="img" src="/assets/icons/new folder.png">          
+           <h5 class="title">Create folder</h5>          <!--<h5 class="title"></h5> -->
+        </div>
         <?php
           foreach($LBfiles as $file){ 
             $count++;
@@ -190,6 +194,16 @@
         ?>
         </div>
       </div>
+
+      <div style="display:none; opacity:0.6;" class="dropbox-indicator top">
+      </div>
+      <div style="display:none; opacity:0.6;" class="dropbox-indicator right">
+      </div>
+      <div style="display:none; opacity:0.6;" class="dropbox-indicator bottom">
+      </div>
+      <div style="display:none; opacity:0.6;" class="dropbox-indicator left">
+      </div>
+
         <div class="modal fade" id="ModalFile">
           <div class="modal-dialog">
             <div class="modal-content">
@@ -359,6 +373,41 @@
         background-color:#999999;
         color:#fff;
       }
+      .dropbox-indicator{
+        position: fixed;
+        background-color: #060;
+        z-index: 1050;
+      }
+      .top{
+        top: 0px;
+        left: 6px;
+        width: 100%;
+        height: 6px;
+      }
+      .right{
+        top: 6px;
+        right: 0px;
+        width: 6px;
+        height: 100%;
+      }
+      .bottom{
+        bottom: 0px;
+        right: 6px;
+        width: 100%;
+        height: 6px;
+      }
+      .left{
+        bottom: 6px;
+        left: 0px;
+        width: 6px;
+        height: 100%;
+      }
+      .dragover{
+        border:5px solid #66a367;
+      }
+      .fileitem{
+        height:171px;
+      }
     </style>
     <!-- Le javascript
     ================================================== -->
@@ -372,6 +421,8 @@
       function LBUI(){return this;}
       LBUI.prototype = {
         sound:null,
+        f: <?=(isset($_GET['f']))?"'".urlencode($_GET['f'])."'":'null'?>,
+        fdecode: <?=(isset($_GET['f']))?"'".str_replace('\\', '\\\\', $_GET['f'])."'":'null'?>,
         init: function(){
           soundManager.setup({
           url: '/assets/soundmanager/swf',
@@ -384,31 +435,7 @@
           }
         });
           $('.opennav').css({'height': $(window).height()/2 + 'px'});
-          $('.navbar-brand').click(function(){
-            if($('.chevron').hasClass('opennav')){
-              $('.opennav').css({'height': 0, 'background-color': '#EEEEEE'});
-              $('.chevron').removeClass('opennav');
-            }else{
-              $('.chevron').addClass('opennav');
-              $('.opennav').css({'height': $(window).height()/2 + 'px'});
-            }
-          });
-          var $this = this;
-          $('#ModalFile').on('hidden.bs.modal', function () {
-            $('.modal-body').html('');
-            $('#ModalFileLabel').html('');
-            $('.modal-footer').addClass('fedit');
-            $('#btns').html('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>');
-            if($this.sound != null){
-              $this.sound.unload();
-              $this.sound = null;
-              soundManager.destroySound('LocalSound');
-            }
-          })
-          $('.delete').click(function(event){$this.FDelete(event.currentTarget)});
-          $('.btnrename').click(function(event){$this.ModalFileRename(event.currentTarget)});
-          $('.btnextract').click(function(event){$this.ModalFileExtract(event.currentTarget)});
-          $('.img').click(function(event){$this.ModalFileOpen(event.currentTarget)});
+          this.bindAll();
         },
         FDelete: function(FButton){
           jQuery.ajax({
@@ -515,8 +542,171 @@
       ModalFileExtract: function(FModal){
         $('#ModalFileLabel').html($(FModal).closest('.fileitem').data('name'));
         $('.modal-footer').removeClass('fedit');
+        $('.modal-footer').html('<button type="button" class="btn btn-default" data-dismiss="modal">Close</button><button type="button" class="btn btn-primary save">Extract</button>');
         $('.save').click(function(event){document.forms['extractfile'].submit()});
         $('.modal-body').html('<form style="margin:0px;" name="extractfile" action="extractfile.php" method="POST"><input type="hidden" name="zipfolder" value="'+$(FModal).closest('.fileitem').data('file')+'"><input type="hidden" name="filename" value="'+$(FModal).closest('.fileitem').data('name')+'">Extract to this folder of the same name?</form>');
+        $('#ModalFile').modal('toggle');
+      },
+      UploadProgress: function(event){
+        var percent = parseInt(event.loaded / event.total * 100);
+        console.log('загрузка' + percent + '%');
+      },
+      StateChange: function(event){
+        var $this = this;
+        if (event.target.readyState == 4) {
+          if (event.target.status == 200) {
+              if(this.fdecode == null){
+                folder = '';
+              }else{
+                folder = this.fdecode;
+              }
+              var response  = event.target.responseText;
+              namet = jQuery.parseJSON(response);
+              name = namet['name'];
+              type = namet['MIME'];
+              icotype = this.GetIco(type,name);
+              dropdown = this.GetDropdown(icotype[1],folder+'/'+ name);
+              var file = '<div data-folder="'+ folder +'" data-mime="'+ type +'" data-name="'+ name +'" data-file="'+ folder+'/'+ name +'" data-type="' + icotype[1] + '" class="col-lg-4 fileitem"><img class="img" src="/assets/icons/'+ icotype[0] +'">          <h5 title="'+ name +'" class="title">'+ ((name.length > 10)?name.substr(0,9) + '...':name) +'</h5>          <!--<h5 class="title"></h5> --><div class="btn-group btn-group-file"><a class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" href="#">Action<span class="caret"></span></a><ul class="dropdown-menu"><!-- dropdown menu links -->'+dropdown+'<li class="divider"></li><li><a tabindex="-1" class="delete" href="#"><span class="glyphicon glyphicon-trash"></span> Delete</a></li></ul></div></div>'
+              $('.row').append(file);
+              this.unbindAll();
+              this.bindAll();
+              console.log('download successful!');
+          } else {
+              console.log('download failed!');
+          }
+        }
+      },
+      GetIco:function(type,name){
+        var $group = type.split('/')
+        switch($group[0]){
+          case 'audio':
+            $ico = 'audio.png';
+          break;
+          case 'application':
+            $ico = 'application.png';
+            if(type == 'application/x-bittorrent'){
+              $group[0] = 'torrent';
+              $ico = 'torrent.png';
+            }else if(type == 'application/zip'){
+              $group[0] = 'zip';
+              $ico = 'zip.png';
+            }else if(type == 'application/x-rar'){
+              $group[0] = 'x-rar';
+              $ico = 'archive.png';
+            }else{
+              $ico = 'application.png';
+            }
+          break;
+          case 'text':
+            $ico = 'document.png';
+          break;
+          case 'image':
+            if(type == 'image/gif'){
+              $group[0] = 'image';
+              $ico = 'gif.png';
+            }else{
+              $ico = 'image.png';
+            }
+          break;
+          case 'video':
+            $ico = 'video.png';
+          break; 
+          default:
+            $ico = 'application.png';
+            $group[0] = 'application';
+          break;
+        }
+        return [$ico,$group[0]];
+      },
+      GetDropdown:function(type,link){
+        var dropdown;
+        dropdown = '';
+        switch(type){
+          case 'audio':
+          case 'video':
+          case 'image':
+          case 'text':
+            dropdown+= '<li><a tabindex="-1" href="' + encodeURIComponent(link.replace('/\\/g','/')) + '" target="_blank"><span class="glyphicon glyphicon-eye-open"></span> Open in new tab</a></li><li><a tabindex="-1" class="btnrename" href="#"><span class="glyphicon glyphicon-pencil"></span> Rename</a></li>';
+          break;
+          case 'x-rar':
+            dropdown+= '<li><a tabindex="-1" class="btnrename" href="#"><span class="glyphicon glyphicon-pencil"></span> Rename</a></li><li><a class="btnextract" tabindex="-1" href="#"><span class="glyphicon glyphicon-share-alt"></span> Unzip</a></li>';
+          break;
+          case 'x-rar':
+            dropdown+= '<li><a tabindex="-1" class="btnrename" href="#"><span class="glyphicon glyphicon-pencil"></span> Rename</a></li><li><a class="btnextract" tabindex="-1" href="#"><span class="glyphicon glyphicon-share-alt"></span> Extract</a></li>';
+          break;
+          default:
+            dropdown+= '<li><a tabindex="-1" class="btnrename" href="#"><span class="glyphicon glyphicon-pencil"></span> Rename</a></li><li><a tabindex="-1" href="' + encodeURIComponent(link.replace('/\\/g','/')) + '" download><span class="glyphicon glyphicon-download-alt"></span> Download</a></li>';;
+          break; 
+          };
+        return dropdown;
+      },
+      bindAll: function(){
+        var $this = this;
+        $('.navbar-brand').click(function(){
+            if($('.chevron').hasClass('opennav')){
+              $('.opennav').css({'height': 0, 'background-color': '#EEEEEE'});
+              $('.chevron').removeClass('opennav');
+            }else{
+              $('.chevron').addClass('opennav');
+              $('.opennav').css({'height': $(window).height()/2 + 'px'});
+            }
+          });
+          $('#ModalFile').on('hidden.bs.modal', function () {
+            $('.modal-body').html('');
+            $('#ModalFileLabel').html('');
+            $('.modal-footer').addClass('fedit');
+            $('.modal-footer').html('<button type="button" class="btn btn-default" data-dismiss="modal">Close</button><button type="button" class="btn btn-primary save">Save changes</button>');
+            $('#btns').html('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>');
+            if($this.sound != null){
+              $this.sound.unload();
+              $this.sound = null;
+              soundManager.destroySound('LocalSound');
+            }
+          })
+        $('.delete').click(function(event){$this.FDelete(event.currentTarget)});
+        $('.btnrename').click(function(event){$this.ModalFileRename(event.currentTarget)});
+        $('.btnextract').click(function(event){$this.ModalFileExtract(event.currentTarget)});
+        $('.img').click(function(event){$this.ModalFileOpen(event.currentTarget)});
+        $('html').bind('dragover', function(event){
+          $('.dropbox-indicator').css('display','block'); 
+            return false;
+          }).bind('dragleave', function(event){
+            $('.dropbox-indicator').css('display','none'); 
+            return false;
+          }).bind('drop', function(){
+            event.preventDefault(); 
+            $('.dropbox-indicator').css('display','none'); 
+            console.log(event.dataTransfer.files[0]);
+            var file = event.dataTransfer.files[0];
+            var xhr = new XMLHttpRequest();
+            xhr.upload.addEventListener('progress', $this.UploadProgress, false);
+            xhr.onreadystatechange = function(event){ $this.StateChange(event)};
+            xhr.open('POST', '/upload.php');
+            var fd = new FormData;
+            fd.append("file", file);
+            if($this.f != null){
+               fd.append("folder", $this.f);
+            }
+            xhr.send(fd);
+          });
+          $('.createfolder').click(function(event){$this.CreateFolder(event.currentTarget)});
+      },
+      unbindAll: function(){
+        $('.navbar-brand').unbind();
+        $('#ModalFile').unbind();
+        $('.delete').unbind();
+        $('.btnrename').unbind();
+        $('.btnextract').unbind();
+        $('.img').unbind();
+        $('html').unbind();
+        $('.createfolder').unbind();
+      },
+      CreateFolder: function(){
+        var $this = this;
+        $('#ModalFileLabel').html('Create folder');
+        $('.modal-footer').removeClass('fedit');
+        $('.save').click(function(event){document.forms['CreateFolder'].submit()});
+        $('.modal-body').html('<form class="input-group form-rename" name="CreateFolder" action="createfolder.php" method="POST"><input class="form-control inputrename" value="new folder" name="foldername" type="text" /><input type="hidden" name="folder" value="'+ $this.fdecode +'" /></form>');
         $('#ModalFile').modal('toggle');
       }
       }
