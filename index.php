@@ -3,17 +3,17 @@
   $LocalBox = new Files();
   $LocalBox->init();
   $LBfiles = $LocalBox->OutFiles();
-  session_start();
+  $count = 0;
+  /*session_start();
   require('vkauth.php');
   require('vkapi.php');
   $vkapi = new vkapi();
   $userinfo = $vkapi->getinfo();
   $userdata = $vkapi->getdata();
-  $count = 0;
   if($userinfo != false){
     $username = $userinfo->response[0]->first_name.' '.$userinfo->response[0]->last_name;
     $photo_50 = $userinfo->response[0]->photo_50;
-  }
+  }*/
 
 ?>
 <!DOCTYPE html>
@@ -50,13 +50,13 @@
       <div class="navbar navbar-fixed-top">
         <div class="chevron">
         <?php
-          if($userdata != false){
+          /*if($userdata != false){
             for($i = 0;$i<=(($userdata->response->count));$i++){
               if(isset($userdata->response->items[$i])){
-                echo '<div data-file="'.($userdata->response->items[$i]->url).'" data-id="'.($userdata->response->items[$i]->id).'" class="LocalPlayer"><h4 class="title">'.($userdata->response->items[$i]->artist).' - '.($userdata->response->items[$i]->title).'</h4></div>';
+                echo '<div class="LocalPlayer"><div data-file="'.($userdata->response->items[$i]->url).'" data-id="'.($userdata->response->items[$i]->id).'" class="LocalPlayer playbtn"></div><div class="LocalPlayer mainbtn"><h5 class="title">'.($userdata->response->items[$i]->artist).' - '.($userdata->response->items[$i]->title).'</h5></div><a href="'.($userdata->response->items[$i]->url).'" download><div class="LocalPlayer downloadbtn"></div></a></div>';
               }
             }
-          }
+          }*/
         ?>
         </div>
         <div class="navbar-inner">
@@ -68,25 +68,8 @@
             </button>
             <a class="navbar-brand" href="#">LocalBox</a>
             <div class="nav-collapse collapse">
-              <ul class="nav navbar-nav pull-right">
-                <?php
-                  if($userinfo != false){
-                    echo '<li class="usergroup"><a href="http://vk.com/id'.$_SESSION['user_id'].'">'.$username.'</a></li>
-                    <li class="divider-vertical usergroup"></li>
-                    <li class="dropdown usergroup">
-                      <a href="#" class="dropdown-toggle photo_50drop" data-toggle="dropdown">
-                        <img class="photo_50" src="'.$photo_50.'">
-                      </a>
-                      <ul class="dropdown-menu">
-                        <li><a href="#">Action</a></li>
-                        <li><a href="/signout.php">Sign out</a></li>
-                      </ul>
-
-                    </li>';
-                  }else{
-                    echo '<li><a style="height: 50px" href="https://oauth.vk.com/authorize?client_id=3791305&scope=audio,video&redirect_uri=http://'.$_SERVER['HTTP_HOST'].'/&display=popup&v=4.104&response_type=code">Sign in</a></li>';
-                  }
-                ?>
+              <ul class="nav navbar-nav pull-right vkinfo">
+                 
               </ul>
             </div><!--/.nav-collapse -->
           </div>
@@ -357,16 +340,6 @@
       .form-rename{
         width:100%;
       }
-      .LocalPlayer{
-        -moz-transition:all 0.7s ease;
-        -o-transition:all 0.7s ease;
-        -webkit-transition:all 0.7s ease;
-        transition:all 0.7s ease;
-        height:40px;
-        width:auto;
-        background-color: #d5d5d5;
-        margin:5px 10px 0px 0px;
-      }
       .stop{
         background-color:#F9F9F9;
       }
@@ -439,10 +412,44 @@
         float: left;
         text-overflow: ellipsis;
       }
+      .LocalPlayer .playbtn{
+        display:inline-block;
+        margin:0px 0px 0px 0px;
+        width:40px;
+        background: url(/assets/icons/play.png) no-repeat;
+        background-size: 30px;
+        background-position: 5px;
+        background-color: #d5d5d5;
+      }
+      .LocalPlayer .downloadbtn{
+        display:inline-block;
+        margin:0px 0px 0px 0px;
+        width:40px;
+        background: url(/assets/icons/download_1.png) no-repeat;
+        background-size: 30px;
+        background-position: 5px;
+        background-color: #d5d5d5;
+      }
+      .LocalPlayer .mainbtn{
+        display:inline-block;
+        margin:0px 5px 0px 5px;
+        background-color: #d5d5d5;
+        width:480px;
+      }
+      .LocalPlayer{
+        -moz-transition:all 0.7s ease;
+        -o-transition:all 0.7s ease;
+        -webkit-transition:all 0.7s ease;
+        transition:all 0.7s ease;
+        height:40px;
+        width:auto;
+        margin:5px 5px 0px 0px;
+      }
     </style>
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
+    <script src="http://vk.com/js/api/openapi.js" type="text/javascript"></script>
     <script src="/assets/video-js/video.js"></script>
     <link href="/assets/video-js/video-js.css" rel="stylesheet" type="text/css">
     <script src="/assets/js/jquery.js"></script>
@@ -467,6 +474,24 @@
         });
           $('.opennav').css({'height': $(window).height()/2 + 'px'});
           this.bindAll();
+          /*if(window.location.hash != ''){
+            ans = window.location.hash.split('#')[1].split('&');
+            if(ans.length == 3){
+              access_token = ans[0].split('=')[1];
+              expires_in = ans[1].split('=')[1];
+              user_id = ans[2].split('=')[1];
+              $.ajax({
+                  url: 'vkauth.php',
+                  type: 'post',
+                  data: {access_token: access_token,expires_in: expires_in,user_id:user_id},
+                  success: function (data) {
+                    if(data == 'OK'){
+                      document.location = 'http://'+document.location.hostname;
+                    }
+                  }
+                });
+            }
+          }*/
         },
         FDelete: function(FButton){
           jQuery.ajax({
@@ -703,7 +728,7 @@
             $('body').append('<div class="dropbox-modal"></div>');
           });
           $('.createfolder').click(function(event){$this.CreateFolder(event.currentTarget)});
-          $('.LocalPlayer').click(function(){
+          $('.playbtn').click(function(){
             if($this.sound == null){
               $this.sound = soundManager.createSound({
                 id:$(this).data('id'),
@@ -722,8 +747,8 @@
                   $(this).addClass('play');
                 }
               }else{
-                $('.LocalPlayer').removeClass('pause');
-                $('.LocalPlayer').removeClass('play');
+                $('.playbtn').removeClass('pause');
+                $('.playbtn').removeClass('play');
                 $this.sound.unload();
                 $this.sound=null;
                 $this.sound = soundManager.createSound({
@@ -757,6 +782,35 @@
       jQuery(document).ready(function($) {
         var  UI = new LBUI();
         UI.init();
+        VK.init({
+          apiId: 3791305
+        });
+        function authInfo(response) {
+          if (response.session) {
+            VK.Api.call('users.get', {user_ids: response.session.mid, fields:'photo_50'}, function(r) { 
+              if(r.response) { 
+                $('.vkinfo').html('<li class="usergroup"><a href="http://vk.com/id'+r.response[0].uid+'">'+r.response[0].first_name+' '+r.response[0].last_name+'</a></li><li class="divider-vertical usergroup"></li><li class="dropdown usergroup"><a href="#" class="dropdown-toggle photo_50drop" data-toggle="dropdown"><img class="photo_50" src="'+r.response[0].photo_50+'"></a><ul class="dropdown-menu"><li><a href="#">Action</a></li><li><a href="/signout.php">Sign out</a></li></ul></li>');
+              } 
+            });
+            VK.Api.call('audio.get', {owner_id: response.session.mid, access_token:response.session.sig,count:100}, function(r) { 
+              if(r.response) { 
+                for (var i = 1; i <= r.response.length-1; i++) {
+                  $('.chevron').append('<div class="LocalPlayer"><div data-file="'+r.response[i].url+'" data-id="'+r.response[i].aid+'" class="LocalPlayer playbtn"></div><div class="LocalPlayer mainbtn"><h5 class="title">'+r.response[i].artist+' - '+r.response[i].title+'</h5></div><a href="'+r.response[i].url+'" download><div class="LocalPlayer downloadbtn"></div></a></div>');
+                };
+                UI.unbindAll();
+                UI.bindAll();
+              } 
+            });  
+          } else {
+            $('.vkinfo').html('<li class="usergroup"><div id="login_button"></div></li>');
+            $('#login_button').click(function(event){VK.Auth.login(authInfo)});
+            VK.UI.button('login_button');
+          }
+        }
+        $('.vkinfo').html('<li class="usergroup"><div id="login_button"></div></li>');
+        $('#login_button').click(function(event){VK.Auth.login(authInfo)});
+        VK.UI.button('login_button');
+        VK.Auth.getLoginStatus(authInfo);
       });
     </script>
   </body>
