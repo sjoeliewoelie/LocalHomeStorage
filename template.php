@@ -14,7 +14,7 @@
       body {
         padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
       }
-      .span4{
+      .col-lg-4{
         -moz-box-shadow: 1px 6px 12px -6px #888; /* Для Firefox */
         -webkit-box-shadow: 1px 6px 12px -6px #888; /* Для Safari и Chrome */
         box-shadow: 1px 6px 12px -6px #888; /* Параметры тени */
@@ -28,14 +28,14 @@
         float:left;
         color:gray;
       }
-      .span4 .img-rounded{
+      .col-lg-4 .img-rounded{
         border-radius: 8px 8px 0px 0px; 
       }
-      .span4 .btn-group{
+      .col-lg-4 .btn-group{
         float:right;
         margin:10px 5px 10px 0px;
       }
-      .span4 img{
+      .col-lg-4 img{
         height:125px;
         width:370px;
         opacity:0.8;
@@ -62,12 +62,12 @@
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="glyphicon glyphicon-bar"></span>
+            <span class="glyphicon glyphicon-bar"></span>
+            <span class="glyphicon glyphicon-bar"></span>
           </button>
-          <a class="brand" href="#">LocalBox</a>
+          <a class="navbar-brand" href="#">LocalBox</a>
           <div class="nav-collapse collapse">
             <ul class="nav">
               <li class="active"><a href="#">Home</a></li>
@@ -84,16 +84,16 @@
       <!-- Example row of columns -->
       <div class="row">
 
-        <div class="span4">
+        <div class="col-lg-4">
           <img class="img-rounded" src="/assets/icons/new folder.png">
           <h4 class="title">new folder</h4>
         </div>
 
-        <div class="span4">
+        <div class="col-lg-4">
           <img class="img-rounded" src="/assets/icons/image.png">
           <h5 class="title">screen.jpg</h5>
           <div class="btn-group">
-            <a class="btn dropdown-toggle btn-mini" data-toggle="dropdown" href="#">
+            <a class="btn btn-default dropdown-toggle btn-small" data-toggle="dropdown" href="#">
               Action
               <span class="caret"></span>
             </a>
@@ -108,11 +108,11 @@
           </div>
         </div>
 
-        <div class="span4">
+        <div class="col-lg-4">
           <img class="img-rounded" src="/assets/icons/image.png">
           <h5 class="title">SW1.jpg</h5>
           <div class="btn-group">
-            <a class="btn dropdown-toggle btn-mini" data-toggle="dropdown" href="#">
+            <a class="btn btn-default dropdown-toggle btn-small" data-toggle="dropdown" href="#">
               Action
               <span class="caret"></span>
             </a>
@@ -128,11 +128,11 @@
         </div>
 
 
-        <div class="span4">
+        <div class="col-lg-4">
           <img class="img-rounded" src="/assets/icons/image.png">
           <h5 class="title">SW2.jpg</h5>
           <div class="btn-group">
-            <a class="btn dropdown-toggle btn-mini" data-toggle="dropdown" href="#">
+            <a class="btn btn-default dropdown-toggle btn-small" data-toggle="dropdown" href="#">
               Action
               <span class="caret"></span>
             </a>
@@ -148,11 +148,11 @@
         </div>
 
 
-        <div class="span4">
+        <div class="col-lg-4">
           <img class="img-rounded" src="/assets/icons/image.png">
           <h5 class="title">SW3.jpg</h5>
           <div class="btn-group">
-            <a class="btn dropdown-toggle btn-mini" data-toggle="dropdown" href="#">
+            <a class="btn btn-default dropdown-toggle btn-small" data-toggle="dropdown" href="#">
               Action
               <span class="caret"></span>
             </a>
@@ -169,11 +169,11 @@
 
 
 
-        <div class="span4">
+        <div class="col-lg-4">
           <img class="img-rounded" src="/assets/icons/image.png">
           <h5 class="title">SW4.jpg</h5>
           <div class="btn-group">
-            <a class="btn dropdown-toggle btn-mini" data-toggle="dropdown" href="#">
+            <a class="btn btn-default dropdown-toggle btn-small" data-toggle="dropdown" href="#">
               Action
               <span class="caret"></span>
             </a>
@@ -190,11 +190,11 @@
 
 
 
-        <div class="span4">
+        <div class="col-lg-4">
           <img class="img-rounded" src="/assets/icons/archive.png">
           <h5 class="title">images.rar</h5>
           <div class="btn-group">
-            <a class="btn dropdown-toggle btn-mini" data-toggle="dropdown" href="#">
+            <a class="btn btn-default dropdown-toggle btn-small" data-toggle="dropdown" href="#">
               Action
               <span class="caret"></span>
             </a>
@@ -212,11 +212,11 @@
 
 
 
-        <div class="span4">
+        <div class="col-lg-4">
           <img class="img-rounded" src="/assets/icons/video.png">
           <h5 class="title">Star Wars....</h5>
           <div class="btn-group">
-            <a class="btn dropdown-toggle btn-mini" data-toggle="dropdown" href="#">
+            <a class="btn btn-default dropdown-toggle btn-small" data-toggle="dropdown" href="#">
               Action
               <span class="caret"></span>
             </a>
@@ -243,7 +243,7 @@
     <!-- ban bootstrap styles -->
 
     <style>
-    .span4{
+    .col-lg-4{
       float: left;
       margin-left: 20px;
     }

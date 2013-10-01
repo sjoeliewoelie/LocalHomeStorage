@@ -28,8 +28,8 @@
         padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
       }
     </style>
-    <link href="/assets/css/bootstrap.css" rel="stylesheet">
-    <link href="/assets/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/assets/css/bootstrap.css?<?=time()?>" rel="stylesheet">
+    <link href="/assets/css/bootstrap-glyphicons.css" rel="stylesheet">
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -49,19 +49,19 @@
         <div class="chevron"></div>
         <div class="navbar-inner">
           <div  class="container">
-            <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="brand" href="#">LocalBox</a>
+            <a class="navbar-brand" href="#">LocalBox</a>
             <div class="nav-collapse collapse">
-              <ul class="nav">
+              <ul class="nav navbar-nav">
                 <li class="active"><a href="#">Home</a></li>
                 <li><a href="#about">About</a></li>
                 <li><a href="#contact">Contact</a></li>
               </ul>
-              <ul class="nav pull-right">
+              <ul class="nav navbar-nav pull-right">
                 <?php
                   if($userinfo != false){
                     echo '<li class="usergroup"><a href="http://vk.com/id'.$_SESSION['user_id'].'">'.$username.'</a></li>
@@ -77,8 +77,8 @@
 
                     </li>';
                   }else{
-                    echo '<li><a href="https://oauth.vk.com/authorize?client_id=3791305&scope=audio,video&redirect_uri=http://'.$_SERVER['HTTP_HOST'].'/&display=popup&v=4.104&response_type=code"><i class="icon-user"></i> Sign in</a></li>';
-                  } 
+                    echo '<li><a class="btn btn-default" style="height: 50px" href="https://oauth.vk.com/authorize?client_id=3791305&scope=audio,video&redirect_uri=http://'.$_SERVER['HTTP_HOST'].'/&display=popup&v=4.104&response_type=code">Sign in</a></li>';
+                  }
                 ?>
               </ul>
             </div><!--/.nav-collapse -->
@@ -93,7 +93,7 @@
           if(isset($_GET['f'])){
             $url = urldecode($_GET['f']);
             preg_match_all("/[^\\\]*/", $url, $uri);
-            echo '<li><a href="http://'.$_SERVER['HTTP_HOST'].'">LocalBox</a><span class="divider">/</span></li>';
+            echo '<li><a href="http://'.$_SERVER['HTTP_HOST'].'">LocalBox</a></li>';
             for ($i = 0; $i < count($uri[0]); $i++) {
               if($i % 2 != 0){
                 if($i + 1 == (count($uri[0]) - 1)){
@@ -101,12 +101,12 @@
                 }else{
                   $buff = $uri[0][$i];
                   $furl = $furl.'\\'.$buff;
-                  echo '<li><a href="http://'.$_SERVER['HTTP_HOST'].'?f='.urlencode($furl).'">'.$uri[0][$i].'</a><span class="divider">/</span></li>';
+                  echo '<li><a href="http://'.$_SERVER['HTTP_HOST'].'?f='.urlencode($furl).'">'.$uri[0][$i].'</a></li>';
                 }
               }
             }
           }else{
-            echo '<li class="active">LocalBox<span class="divider">/</span></li>';
+            echo '<li class="active">LocalBox</li>';
           }
         ?>
       </ul>
@@ -121,18 +121,24 @@
               if($file['type'] != 'folder'){ 
                 echo  'data-folder="'.$file['infolder'].'" data-mime="'.$file['mime'].'" data-name="'.$file['name'].'" data-file="'.$file['directlink'].'" data-type="'.$file['type'].'"';
               }
-            ?> class="span4 fileitem">
-          <img class="img" src="/assets/icons/<?php echo $file['ico'];?>">
+            ?> class="col-lg-4 fileitem">
+           <?php
+              if($file['type'] != 'folder'){  
+                echo '<img class="img" src="/assets/icons/'.$file['ico'].'">';
+              }else{
+                echo '<a href="?f='.$file['folder'].'"><img class="img" src="/assets/icons/'.$file['ico'].'"></a>';
+              }
+            ?>
           <?php 
             if(strlen($file['name'])>10){
-              echo '<h5 title="'.$file['name'].'" class="title">'.substr($file['name'],0,7).'...</h5>';
+              echo '<h5 title="'.$file['name'].'" class="title">'.strtolower(substr($file['name'],0,9)).'...</h5>';
             }else{
               echo '<h5 class="title">'.$file['name'].'</h5>';
             }
           ?>
           <!--<h5 class="title"><?php //echo $name;?></h5> -->
-          <div class="btn-group">
-            <a class="btn dropdown-toggle btn-mini" data-toggle="dropdown" href="#">
+          <div class="btn-group btn-group-file">
+            <a class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" href="#">
               Action
               <span class="caret"></span>
             </a>
@@ -144,61 +150,65 @@
               case 'video':
               case 'image':
               case 'text':
-                echo '<li><a tabindex="-1" href="'.$file['link'].'" target="_blank"><i class="icon-eye-open"></i> Open in new tab</a></li>';
+                echo '<li><a tabindex="-1" href="'.$file['link'].'" target="_blank"><span class="glyphicon glyphicon-eye-open"></span> Open in new tab</a></li>';
               break;
               case 'folder':
-                echo '<li><a tabindex="-1" href="?f='.$file['folder'].'"><i class="icon-folder-open"></i> Open</a></li>';
+                echo '<li><a tabindex="-1" href="?f='.$file['folder'].'"><span class="glyphicon glyphicon-folder-open"></span> Open</a></li>';
               break;
               };
               ?>
               <?php
                 if($file['type'] != 'folder'){
-                  echo '<li><a tabindex="-1" class="btnrename" href="#"><i class="icon-pencil"></i> Rename</a></li>';
+                  echo '<li><a tabindex="-1" class="btnrename" href="#"><span class="glyphicon glyphicon-pencil"></span> Rename</a></li>';
                 }
               ?>
               <?php
                 if($file['type'] == 'zip'){
-                  echo '<li><a tabindex="-1" href="#"><i class="icon-share-alt"></i> Unzip</a></li>';
+                  echo '<li><a tabindex="-1" href="#"><span class="glyphicon glyphicon-share-alt"></span> Unzip</a></li>';
                 };
                 if($file['type'] == 'x-rar'){
-                  echo '<li><a tabindex="-1" href="#"><i class="icon-share-alt"></i> Extract</a></li>';
+                  echo '<li><a tabindex="-1" href="#"><span class="glyphicon glyphicon-share-alt"></span> Extract</a></li>';
                 };
               ?>
               <?php
                 if($file['type'] != 'folder'){
-                  echo '<li><a tabindex="-1" href="'.$file['link'].'" download><i class="icon-download-alt"></i> Download</a></li>';
+                  echo '<li><a tabindex="-1" href="'.$file['link'].'" download><span class="glyphicon glyphicon-download-alt"></span> Download</a></li>';
                 }
               ?>
                   <?php
                     if($file['type'] != 'folder'){
                       echo '<li class="divider"></li>
                             <li>
-                              <a tabindex="-1" class="delete" href="#"><i class="icon-trash"></i> Delete</a>
+                              <a tabindex="-1" class="delete" href="#"><span class="glyphicon glyphicon-trash"></span> Delete</a>
                             </li>';
                     }
                   ?>
                 </li>
             </ul>
           </div>
-        </div>
+          </div>
         <?php
           }
         ?>
-      </div>
-        <div id="ModalFile" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="ModalFileLabel" aria-hidden="true">
-          <div class="modal-header">
-            <span id="btns"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button></span>
-            <h5 id="ModalFileLabel"></h5>
-          </div>
-          <div class="modal-body">
-          </div>
-          <div class="modal-footer fedit">
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-            <button class="btn btn-primary save">Save changes</button>
-          </div>
         </div>
-      </div> <!-- /container -->
-
+      </div>
+        <div class="modal fade" id="ModalFile">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <span id="btns"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button></span>
+                <h5 id="ModalFileLabel" class="modal-title">Modal title</h5>
+              </div>
+              <div class="modal-body">
+                ...
+              </div>
+              <div class="modal-footer fedit">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary save">Save changes</button>
+              </div>
+            </div><!-- /.modal-content -->
+          </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
     <!-- FOOTER -->
     <hr>
 
@@ -210,49 +220,63 @@
       .row{
         margin:0px auto;
       }
-      .span4{
-        -moz-box-shadow: 1px 6px 12px -6px #888;
-        -webkit-box-shadow: 1px 6px 12px -6px #888;
-        box-shadow: 1px 6px 12px -6px #888;
-        margin:0px 0px 20px 20px;
-        max-width:167px;
+      .col-lg-4{
+        -moz-transition:all 0.3s ease;
+        -o-transition:all 0.3s ease;
+        -webkit-transition:all 0.3s ease;
+        transition:all 0.3s ease;
+        background-color: #EEEEEE;
+        margin:0px 0px 5px 5px;
+        max-width:165px;
         float:left;
       }
-      .span4 h5{
+      .col-lg-4 h5{
         font-size: 12px !important;
+        margin-top:15px !important;
+        margin-left:0px !important;
       }
       .title{
         margin:10px 0px 10px 5px;
         float:left;
         color:gray;
       }
-      .span4 .btn-group{
+      .btn-group-file{
+        margin: 10px 0px 10px 0px !important;
+      }
+      .col-lg-4 .btn-group{
         float:right;
         margin:10px 5px 10px 0px;
       }
-      .span4 img{
-        height:125px;
-        width:370px;
-        opacity:0.7;
+      .col-lg-4 img{
+        cursor: pointer;
+        margin-top: 10px;
+        -moz-transition:all 0.3s ease;
+        -o-transition:all 0.3s ease;
+        -webkit-transition:all 0.3s ease;
+        transition:all 0.3s ease;
+        height:115px;
+        width:135px;
+        opacity:0.69;
       }
-      .span4:hover{
-        -moz-box-shadow: 0px 0px 10px 1px #888;
-        -webkit-box-shadow: 0px 0px 10px 1px #888;
-        box-shadow: 0px 0px 10px 1px #888;
+      .col-lg-4:hover{
+        -moz-box-shadow: 0px 0px 16px 3px #888;
+        -webkit-box-shadow: 0px 0px 16px 3px #888;
+        box-shadow: 0px 0px 16px 3px #888;
+        z-index: 999;
+        background-color: #F7F7F7;
       }
-      .span4:hover img{
+      .col-lg-4:hover img{
         opacity:1;
-      }
-      .span4{
-        float: left;
-        margin-left: 10px;
       }
       .vk{
         width:30px;
       }
       .photo_50{
-        width:34px;
-        margin-top: 3px;
+        width:40px;
+        margin-top: 4px;
+      }
+      .row{
+        margin: 0px auto;
       }
       .photo_50drop{
         padding: 0px 0px 0px 0px !important;
@@ -260,22 +284,18 @@
       .chevron{
         z-index: 1;
         width:100%;
-        background: #fafafa;
-        height:0px;
+        height:0;
         opacity: 0.93;
         -moz-transition:all 0.7s ease;
         -o-transition:all 0.7s ease;
         -webkit-transition:all 0.7s ease;
         transition:all 0.7s ease;
       }
-      .opennav{
-        height:300px;
-      }
       .usergroup{
         float:left !important;
       }
       .dropdown.usergroup.open{
-        width:34px !important;
+        
       }
       .fedit{
         display:none;
@@ -304,13 +324,46 @@
         opacity:0.5;
       }
       .modal-body textarea{
-        max-width:520px !important;
-        max-height: 360px !important;
-        width:520px !important;
+        resize:none;
+        width:535px !important;
         height: 360px !important; 
       }
       .modal-body img{
         width:100%;
+      }
+      .container{
+        max-width: none !important;
+      }
+      .form-rename{
+        width:100%;
+      }
+      .LocalPlayer{
+        -moz-transition:all 0.7s ease;
+        -o-transition:all 0.7s ease;
+        -webkit-transition:all 0.7s ease;
+        transition:all 0.7s ease;
+        height:40px;
+        width:100%;
+      }
+      .stop{
+        background-color:#F9F9F9;
+      }
+      .stop:hover{
+        background-color:#EFEFEF;
+      }
+      .pause{
+        background-color:#999999;
+      }
+      .AudioName{
+        padding:10px 0px 0px 10px;
+      }
+      .play{
+        color:gray;
+        background-color:#DADADA;
+      }
+      .play:hover{
+        background-color:#999999;
+        color:#fff;
       }
     </style>
     <!-- Le javascript
@@ -320,23 +373,43 @@
     <link href="/assets/video-js/video-js.css" rel="stylesheet" type="text/css">
     <script src="/assets/js/jquery.js"></script>
     <script src="/assets/js/bootstrap.js"></script>
+    <script src="/assets/soundmanager/script/soundmanager2.js"></script>
     <script type="text/javascript">
       function LBUI(){return this;}
       LBUI.prototype = {
+        sound:null,
         init: function(){
-          $('.brand').click(function(){
+          soundManager.setup({
+          url: '/assets/soundmanager/swf',
+          flashVersion: 9, // optional: shiny features (default = 8)
+          // optional: ignore Flash where possible, use 100% HTML5 mode
+          // preferFlash: false,
+          onready: function() {
+            // Ready to use; soundManager.createSound() etc. can now be called.
+            console.log('LocalSound initialized');
+          }
+        });
+          $('.opennav').css({'height': $(window).height()/2 + 'px'});
+          $('.navbar-brand').click(function(){
             if($('.chevron').hasClass('opennav')){
+              $('.opennav').css({'height': 0, 'background-color': '#EEEEEE'});
               $('.chevron').removeClass('opennav');
             }else{
               $('.chevron').addClass('opennav');
+              $('.opennav').css({'height': $(window).height()/2 + 'px'});
             }
           });
           var $this = this;
-          $('#ModalFile').on('hidden', function () {
+          $('#ModalFile').on('hidden.bs.modal', function () {
             $('.modal-body').html('');
             $('#ModalFileLabel').html('');
             $('.modal-footer').addClass('fedit');
-            $('#btns').html('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>');
+            $('#btns').html('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>');
+            if($this.sound != null){
+              $this.sound.unload();
+              $this.sound = null;
+              soundManager.destroySound('LocalSound');
+            }
           })
           $('.delete').click(function(event){$this.FDelete(event.currentTarget)});
           $('.btnrename').click(function(event){$this.ModalFileRename(event.currentTarget)});
@@ -389,7 +462,7 @@
                   success: function(data, textStatus, xhr) {
                     //called when successful
                     if(data.status == 'OK'){
-                      $('#btns').html('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button><button class="edit_file"><i class="icon-pencil"></i></button>');
+                      $('#btns').html('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button><button class="edit_file"><span class="glyphicon glyphicon-pencil"></span></button>');
                       $('.edit_file').click(function(event){$this.FileEdit(FModal)});
                       $('.modal-body').html('<pre class="filetext" style="word-wrap: break-word; white-space: pre-wrap;">'+data.file+'</pre>');
                       $('#ModalFile').modal('toggle');
@@ -401,13 +474,40 @@
                 });
                 
               break;
+              case 'audio':
+                $('.modal-body').html('<div class="LocalPlayer stop"><h4 class="tittle AudioName">'+$(FModal).closest('.fileitem').data('name')+'</h4></div>');
+                var $this = this;
+                $('.LocalPlayer').click(function(){
+                  if($this.sound != null){
+                    if($('.LocalPlayer').hasClass('play')){
+                      $('.LocalPlayer').removeClass('play');
+                      $('.LocalPlayer').addClass('pause');
+                      $this.sound.pause();
+                    }else if($('.LocalPlayer').hasClass('pause')){
+                      $('.LocalPlayer').removeClass('pause');
+                      $('.LocalPlayer').addClass('play');
+                      $this.sound.resume();
+                    }else{
+                      $this.sound.unload();
+                    }
+                  }else{
+                    $this.sound = soundManager.createSound({
+                      id : 'LocalSound',
+                      url : $(FModal).closest('.fileitem').data('file')
+                    }).play();
+                    $('.LocalPlayer').removeClass('stop');
+                    $('.LocalPlayer').addClass('play');
+                  }
+                });
+                $('#ModalFile').modal('toggle');
+              break;
           }
         },
         ModalFileRename: function(FModal){
           $('#ModalFileLabel').html('Rename');
           $('.modal-footer').removeClass('fedit');
           $('.save').click(function(event){document.forms['rename'].submit()});
-          $('.modal-body').html('<form name="rename" action="rename.php" method="POST"><input class="inputrename" name="newname" type="text" value="' + $(FModal).closest('.fileitem').data('name') + '" /></input><input type="hidden" name="oldname" value="'+$(FModal).closest('.fileitem').data('name')+'"></input><input type="hidden" name="folder" value="'+$(FModal).closest('.fileitem').data('folder')+'"></input></form>');
+          $('.modal-body').html('<form class="input-group form-rename" name="rename" action="rename.php" method="POST"><input class="inputrename form-control" name="newname" type="text" value="' + $(FModal).closest('.fileitem').data('name') + '" /></input><input type="hidden" name="oldname" value="'+$(FModal).closest('.fileitem').data('name')+'"></input><input type="hidden" name="folder" value="'+$(FModal).closest('.fileitem').data('folder')+'"></input></form>');
           $('#ModalFile').modal('toggle');
       },
       FileEdit: function(FEModal){
@@ -415,7 +515,7 @@
         $text = $('.filetext').html();
         $('#btns').html('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>');
         $('.save').click(function(event){document.forms['editfile'].submit()});
-        $('.modal-body').html('<form style="margin:0px;" name="editfile" action="editfile.php" method="POST"><textarea name="newtext">'+$text+'</textarea></input><input type="hidden" name="filefolder" value="'+$(FEModal).closest('.fileitem').data('file')+'"></form>');
+        $('.modal-body').html('<form class="input-group" style="margin:0px;" name="editfile" action="editfile.php" method="POST"><textarea  class="form-control" type="text" name="newtext">'+$text+'</textarea></input><input type="hidden" name="filefolder" value="'+$(FEModal).closest('.fileitem').data('file')+'"></form>');
       }
       }
       jQuery(document).ready(function($) {
