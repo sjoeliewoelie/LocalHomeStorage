@@ -57,7 +57,12 @@ case 'text':
   $ico = 'document.png';
 break;
 case 'image':
-  $ico = 'image.png';
+  if($tgroup[0][0] == 'image/gif'){
+    $group[0][0] = 'image';
+    $ico = 'gif.png';
+  }else{
+    $ico = 'image.png';
+  }
 break;
 case 'video':
   $ico = 'video.png';
@@ -68,7 +73,8 @@ break;
 }
 $result[] = [
   'ico'=>$ico,
-  'group'=>$group[0][0]
+  'group'=>$group[0][0],
+  'mime'=>$tgroup[0][0],
 ]; 
 return $result;
 }
@@ -83,8 +89,7 @@ public function OutFiles(){
           'name'=>$file,
           'type'=>'folder',
           'ico'=>'folder.png',
-          'folder'=>urlencode($this->getCurPath().'\\'.$file),
-          'size'=>0
+          'folder'=>urlencode($this->getCurPath().'\\'.$file)
         ];
       }else{
         $type = $finfo->file($this->path.DIRECTORY_SEPARATOR.$file);
@@ -93,9 +98,10 @@ public function OutFiles(){
           'name'=>$file,
           'ico'=>$types[0]['ico'],
           'type'=>$types[0]['group'],
+          'mime'=>$types[0]['mime'],
+          'infolder'=>$this->getCurPath(),
           'link'=>$this->makeUrl($this->getCurPath().'/'.$file),
-          'directlink'=>$this->getCurPath().'/'.$file,
-          'size'=>filesize($this->path.DIRECTORY_SEPARATOR.$file)
+          'directlink'=>$this->getCurPath().'/'.$file
         ];
       }
     }
