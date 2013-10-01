@@ -87,6 +87,29 @@
       </div>
     <!-- MAIN CONTAINER -->
     <div class="container">
+      <ul class="breadcrumb">
+        <?php
+          $furl = '';
+          if(isset($_GET['f'])){
+            $url = urldecode($_GET['f']);
+            preg_match_all("/[^\\\]*/", $url, $uri);
+            echo '<li><a href="http://'.$_SERVER['HTTP_HOST'].'">LocalBox</a><span class="divider">/</span></li>';
+            for ($i = 0; $i < count($uri[0]); $i++) {
+              if($i % 2 != 0){
+                if($i + 1 == (count($uri[0]) - 1)){
+                  echo '<li class="active">'.$uri[0][$i].'</li>';
+                }else{
+                  $buff = $uri[0][$i];
+                  $furl = $furl.'\\'.$buff;
+                  echo '<li><a href="http://'.$_SERVER['HTTP_HOST'].'?f='.urlencode($furl).'">'.$uri[0][$i].'</a><span class="divider">/</span></li>';
+                }
+              }
+            }
+          }else{
+            echo '<li class="active">LocalBox<span class="divider">/</span></li>';
+          }
+        ?>
+      </ul>
       <!-- Example row of columns -->
       <div class="row">
         <?php
@@ -164,14 +187,14 @@
       </div>
         <div id="ModalFile" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="ModalFileLabel" aria-hidden="true">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <span id="btns"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button></span>
             <h5 id="ModalFileLabel"></h5>
           </div>
           <div class="modal-body">
           </div>
-          <div class="modal-footer rename">
+          <div class="modal-footer fedit">
             <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-            <button onclick="document.forms['rename'].submit()" class="btn btn-primary">Save changes</button>
+            <button class="btn btn-primary save">Save changes</button>
           </div>
         </div>
       </div> <!-- /container -->
@@ -184,14 +207,19 @@
     </footer>
     <!-- remake bootstrap and styles -->
     <style>
+      .row{
+        margin:0px auto;
+      }
       .span4{
         -moz-box-shadow: 1px 6px 12px -6px #888;
         -webkit-box-shadow: 1px 6px 12px -6px #888;
         box-shadow: 1px 6px 12px -6px #888;
-        border-radius: 8px 8px 8px 8px;
         margin:0px 0px 20px 20px;
-        max-width:151px;
+        max-width:167px;
         float:left;
+      }
+      .span4 h5{
+        font-size: 12px !important;
       }
       .title{
         margin:10px 0px 10px 5px;
@@ -217,7 +245,7 @@
       }
       .span4{
         float: left;
-        margin-left: 20px;
+        margin-left: 10px;
       }
       .vk{
         width:30px;
@@ -249,11 +277,40 @@
       .dropdown.usergroup.open{
         width:34px !important;
       }
-      .rename{
+      .fedit{
         display:none;
       }
       .inputrename{
         width:510px;
+      }
+      .video-js{
+        width:100% !important;
+        height:350px !important;
+      }
+      .edit_file{
+        padding: 0;
+        cursor: pointer;
+        background: transparent;
+        border: 0;
+        -webkit-appearance: none;
+        opacity: 0.2;
+        float:right;
+        margin:2px 4px 0px 0px;
+      }
+      #ModalFile .close{
+        font-size: 26px;
+      }
+      .edit_file:hover{
+        opacity:0.5;
+      }
+      .modal-body textarea{
+        max-width:520px !important;
+        max-height: 360px !important;
+        width:520px !important;
+        height: 360px !important; 
+      }
+      .modal-body img{
+        width:100%;
       }
     </style>
     <!-- Le javascript
@@ -267,7 +324,6 @@
       function LBUI(){return this;}
       LBUI.prototype = {
         init: function(){
-        videojs.options.flash.swf = "/assets/video-js/video-js.swf";
           $('.brand').click(function(){
             if($('.chevron').hasClass('opennav')){
               $('.chevron').removeClass('opennav');
@@ -279,7 +335,8 @@
           $('#ModalFile').on('hidden', function () {
             $('.modal-body').html('');
             $('#ModalFileLabel').html('');
-            $('.modal-footer').addClass('rename');
+            $('.modal-footer').addClass('fedit');
+            $('#btns').html('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>');
           })
           $('.delete').click(function(event){$this.FDelete(event.currentTarget)});
           $('.btnrename').click(function(event){$this.ModalFileRename(event.currentTarget)});
@@ -315,17 +372,50 @@
             break;
             case 'video':
               var $vid = Math.floor(Math.random()*9999 + 1);
-              $('.modal-body').html('<video id="V'+$vid+'" class="video-js vjs-default-skin" controls preload="none"data-setup="{}" width="530" height="400" ><source src="'+$(FModal).closest('.fileitem').data('file')+'"type="'+$(FModal).closest('.fileitem').data('mime')+'"/></video>');
+              $('.modal-body').html('<video id="V'+$vid+'" class="video-js vjs-default-skin" controls preload="none"data-setup="{}"><source src="'+$(FModal).closest('.fileitem').data('file')+'"type="'+$(FModal).closest('.fileitem').data('mime')+'"/></video>');
               videojs('V'+$vid, { "controls": true, "autoplay": false, "preload": "auto" });
               $('#ModalFile').modal('toggle');
             break;
+              case 'text':
+                var $this = this;
+                jQuery.ajax({
+                  url: 'readfile.php',
+                  type: 'POST',
+                  dataType: 'json',
+                  data: {readf: $(FModal).closest('.fileitem').data('file')},
+                  complete: function(xhr, textStatus) {
+                    //called when complete
+                  },
+                  success: function(data, textStatus, xhr) {
+                    //called when successful
+                    if(data.status == 'OK'){
+                      $('#btns').html('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button><button class="edit_file"><i class="icon-pencil"></i></button>');
+                      $('.edit_file').click(function(event){$this.FileEdit(FModal)});
+                      $('.modal-body').html('<pre class="filetext" style="word-wrap: break-word; white-space: pre-wrap;">'+data.file+'</pre>');
+                      $('#ModalFile').modal('toggle');
+                    }
+                  },
+                  error: function(xhr, textStatus, errorThrown) {
+                    //called when there is an error
+                  }
+                });
+                
+              break;
           }
         },
         ModalFileRename: function(FModal){
           $('#ModalFileLabel').html('Rename');
-          $('.modal-footer').removeClass('rename');
+          $('.modal-footer').removeClass('fedit');
+          $('.save').click(function(event){document.forms['rename'].submit()});
           $('.modal-body').html('<form name="rename" action="rename.php" method="POST"><input class="inputrename" name="newname" type="text" value="' + $(FModal).closest('.fileitem').data('name') + '" /></input><input type="hidden" name="oldname" value="'+$(FModal).closest('.fileitem').data('name')+'"></input><input type="hidden" name="folder" value="'+$(FModal).closest('.fileitem').data('folder')+'"></input></form>');
           $('#ModalFile').modal('toggle');
+      },
+      FileEdit: function(FEModal){
+        $('.modal-footer').removeClass('fedit');
+        $text = $('.filetext').html();
+        $('#btns').html('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>');
+        $('.save').click(function(event){document.forms['editfile'].submit()});
+        $('.modal-body').html('<form style="margin:0px;" name="editfile" action="editfile.php" method="POST"><textarea name="newtext">'+$text+'</textarea></input><input type="hidden" name="filefolder" value="'+$(FEModal).closest('.fileitem').data('file')+'"></form>');
       }
       }
       jQuery(document).ready(function($) {

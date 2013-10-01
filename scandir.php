@@ -78,7 +78,32 @@ $result[] = [
 ]; 
 return $result;
 }
-
+public function getTypeId($type){
+  switch ($type) {
+    case 'folder':
+        return '1';
+    break;
+    case 'image':
+        return '2';
+    break;
+    case 'audio':
+        return '3';
+    break;
+    case 'video':
+        return '4';
+    break;
+    case 'text':
+        return '5';
+    break;
+    case 'zip':
+        return '7';
+    break;
+    case 'x-rar':
+        return '6';
+    break;
+  }
+  return '9';
+}
 public function OutFiles(){ 
   $outfiles = array();
   $finfo = new finfo(FILEINFO_MIME);
@@ -106,6 +131,9 @@ public function OutFiles(){
       }
     }
        }
+      uasort($outfiles, function($a,$b){
+        return strnatcmp($this->getTypeId($a['type']),$this->getTypeId($b['type']));
+      });
       return $outfiles;
     }
   }

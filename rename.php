@@ -9,6 +9,6 @@ if(isset($_POST['newname'])){
 	}else{
 		rename($root.$link3.DIRECTORY_SEPARATOR.$link,$root.$link3.DIRECTORY_SEPARATOR.$link2);
 	}
-	header("Location: http://".$_SERVER['HTTP_HOST']);
 }
+header("Location:".$_SERVER['HTTP_REFERER']);
 ?>
