@@ -8,11 +8,13 @@
   require('vkapi.php');
   $vkapi = new vkapi();
   $userinfo = $vkapi->getinfo();
+  $userdata = $vkapi->getdata();
   $count = 0;
   if($userinfo != false){
     $username = $userinfo->response[0]->first_name.' '.$userinfo->response[0]->last_name;
     $photo_50 = $userinfo->response[0]->photo_50;
   }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -46,7 +48,17 @@
 
   <body>
       <div class="navbar navbar-fixed-top">
-        <div class="chevron"></div>
+        <div class="chevron">
+        <?php
+          if($userdata != false){
+            for($i = 0;$i<=(($userdata->response->count));$i++){
+              if(isset($userdata->response->items[$i])){
+                echo '<div data-file="'.($userdata->response->items[$i]->url).'" data-id="'.($userdata->response->items[$i]->id).'" class="LocalPlayer"><h4 class="title">'.($userdata->response->items[$i]->artist).' - '.($userdata->response->items[$i]->title).'</h4></div>';
+              }
+            }
+          }
+        ?>
+        </div>
         <div class="navbar-inner">
           <div  class="container">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
@@ -56,11 +68,6 @@
             </button>
             <a class="navbar-brand" href="#">LocalBox</a>
             <div class="nav-collapse collapse">
-              <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li>
-              </ul>
               <ul class="nav navbar-nav pull-right">
                 <?php
                   if($userinfo != false){
@@ -115,6 +122,10 @@
         <div class="col-lg-4 fileitem createfolder">
            <img class="img" src="/assets/icons/new folder.png">          
            <h5 class="title">Create folder</h5>          <!--<h5 class="title"></h5> -->
+        </div>
+        <div class="col-lg-4 fileitem uploadfile">
+           <img class="img" src="/assets/icons/upload.png">          
+           <h5 class="title">Upload file</h5>          <!--<h5 class="title"></h5> -->
         </div>
         <?php
           foreach($LBfiles as $file){ 
@@ -203,7 +214,7 @@
       </div>
       <div style="display:none; opacity:0.6;" class="dropbox-indicator left">
       </div>
-
+      
         <div class="modal fade" id="ModalFile">
           <div class="modal-dialog">
             <div class="modal-content">
@@ -294,6 +305,7 @@
         width:100%;
         height:0;
         opacity: 0.93;
+        overflow-y: auto;
         -moz-transition:all 0.7s ease;
         -o-transition:all 0.7s ease;
         -webkit-transition:all 0.7s ease;
@@ -351,7 +363,9 @@
         -webkit-transition:all 0.7s ease;
         transition:all 0.7s ease;
         height:40px;
-        width:100%;
+        width:auto;
+        background-color: #d5d5d5;
+        margin:5px 10px 0px 0px;
       }
       .stop{
         background-color:#F9F9F9;
@@ -407,6 +421,23 @@
       }
       .fileitem{
         height:171px;
+      }
+      .dropbox-modal{
+        position: fixed;
+        width: 50%;
+        bottom: 0px;
+        margin: 0px auto;
+        left: 25%;
+      }
+      .dropbox-modal .progress{
+        height:30px;
+        margin-bottom: 0px;
+        text-overflow: ellipsis;
+      }
+      .dropbox-modal h4{
+        margin: 6px;
+        float: left;
+        text-overflow: ellipsis;
       }
     </style>
     <!-- Le javascript
@@ -497,30 +528,10 @@
                 
               break;
               case 'audio':
-                $('.modal-body').html('<div class="LocalPlayer stop"><h4 class="tittle AudioName">'+$(FModal).closest('.fileitem').data('name')+'</h4></div>');
+                $('.modal-body').html('<div data-id="000" class="LocalPlayer"><h4 class="tittle AudioName">'+$(FModal).closest('.fileitem').data('name')+'</h4></div>');
                 var $this = this;
-                $('.LocalPlayer').click(function(){
-                  if($this.sound != null){
-                    if($('.LocalPlayer').hasClass('play')){
-                      $('.LocalPlayer').removeClass('play');
-                      $('.LocalPlayer').addClass('pause');
-                      $this.sound.pause();
-                    }else if($('.LocalPlayer').hasClass('pause')){
-                      $('.LocalPlayer').removeClass('pause');
-                      $('.LocalPlayer').addClass('play');
-                      $this.sound.resume();
-                    }else{
-                      $this.sound.unload();
-                    }
-                  }else{
-                    $this.sound = soundManager.createSound({
-                      id : 'LocalSound',
-                      url : $(FModal).closest('.fileitem').data('file')
-                    }).play();
-                    $('.LocalPlayer').removeClass('stop');
-                    $('.LocalPlayer').addClass('play');
-                  }
-                });
+                $this.unbindAll;
+                $this.bindAll;
                 $('#ModalFile').modal('toggle');
               break;
           }
@@ -547,9 +558,10 @@
         $('.modal-body').html('<form style="margin:0px;" name="extractfile" action="extractfile.php" method="POST"><input type="hidden" name="zipfolder" value="'+$(FModal).closest('.fileitem').data('file')+'"><input type="hidden" name="filename" value="'+$(FModal).closest('.fileitem').data('name')+'">Extract to this folder of the same name?</form>');
         $('#ModalFile').modal('toggle');
       },
-      UploadProgress: function(event){
+      UploadProgress: function(event,name){
         var percent = parseInt(event.loaded / event.total * 100);
-        console.log('загрузка' + percent + '%');
+        //console.log('загрузка' + percent + '%');
+        $('.dropbox-modal').html('<div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="'+ percent +'" aria-valuemin="0" aria-valuemax="100" style="width:'+ percent +'%;"><h4>Uploading '+ name +'</h4></div></div>');
       },
       StateChange: function(event){
         var $this = this;
@@ -570,7 +582,9 @@
               $('.row').append(file);
               this.unbindAll();
               this.bindAll();
-              console.log('download successful!');
+              $('.dropbox-modal').animate({opacity: 0}, 500, function() {$(this).remove();});
+              $('body').append('<div class="dropbox-modal"><div class="progress"><div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width:100%;"><h4>Saved with name  '+ name +'</h4></div></div></div>');
+              $('.dropbox-modal').delay(1000).animate({opacity: 0}, 800, function() {$(this).remove();})
           } else {
               console.log('download failed!');
           }
@@ -676,20 +690,50 @@
           }).bind('drop', function(){
             event.preventDefault(); 
             $('.dropbox-indicator').css('display','none'); 
-            console.log(event.dataTransfer.files[0]);
             var file = event.dataTransfer.files[0];
             var xhr = new XMLHttpRequest();
-            xhr.upload.addEventListener('progress', $this.UploadProgress, false);
-            xhr.onreadystatechange = function(event){ $this.StateChange(event)};
+            var fname = event.dataTransfer.files[0]['name'];
+            xhr.upload.addEventListener('progress', function(event){$this.UploadProgress(event,fname)}, false);
+            xhr.onreadystatechange = function(event){$this.StateChange(event)};
             xhr.open('POST', '/upload.php');
             var fd = new FormData;
             fd.append("file", file);
-            if($this.f != null){
-               fd.append("folder", $this.f);
-            }
+            if($this.f != null){fd.append("folder", $this.f);}
             xhr.send(fd);
+            $('body').append('<div class="dropbox-modal"></div>');
           });
           $('.createfolder').click(function(event){$this.CreateFolder(event.currentTarget)});
+          $('.LocalPlayer').click(function(){
+            if($this.sound == null){
+              $this.sound = soundManager.createSound({
+                id:$(this).data('id'),
+                url:$(this).data('file')
+              }).play();
+              $(this).addClass('play');
+            }else{
+              if($this.sound['id'] == $(this).data('id')){
+                if($(this).hasClass('play')){
+                  $this.sound.pause();
+                  $(this).removeClass('play');
+                  $(this).addClass('pause');
+                }else{
+                  $this.sound.resume();
+                  $(this).removeClass('pause');
+                  $(this).addClass('play');
+                }
+              }else{
+                $('.LocalPlayer').removeClass('pause');
+                $('.LocalPlayer').removeClass('play');
+                $this.sound.unload();
+                $this.sound=null;
+                $this.sound = soundManager.createSound({
+                  id:$(this).data('id'),
+                  url:$(this).data('file')
+                }).play();
+                $(this).addClass('play');
+              }
+            }
+          });
       },
       unbindAll: function(){
         $('.navbar-brand').unbind();
