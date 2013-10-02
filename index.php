@@ -340,25 +340,8 @@
       .form-rename{
         width:100%;
       }
-      .stop{
-        background-color:#F9F9F9;
-      }
-      .stop:hover{
-        background-color:#EFEFEF;
-      }
-      .pause{
-        background-color:#999999;
-      }
       .AudioName{
         padding:10px 0px 0px 10px;
-      }
-      .play{
-        color:gray;
-        background-color:#DADADA;
-      }
-      .play:hover{
-        background-color:#999999;
-        color:#fff;
       }
       .dropbox-indicator{
         position: fixed;
@@ -412,7 +395,7 @@
         float: left;
         text-overflow: ellipsis;
       }
-      .LocalPlayer .playbtn{
+      .playbtn{
         display:inline-block;
         margin:0px 0px 0px 0px;
         width:40px;
@@ -420,8 +403,9 @@
         background-size: 30px;
         background-position: 5px;
         background-color: #d5d5d5;
+        height:40px;
       }
-      .LocalPlayer .downloadbtn{
+      .downloadbtn{
         display:inline-block;
         margin:0px 0px 0px 0px;
         width:40px;
@@ -429,12 +413,25 @@
         background-size: 30px;
         background-position: 5px;
         background-color: #d5d5d5;
+        height:40px;
       }
-      .LocalPlayer .mainbtn{
+      .mainbtn{
         display:inline-block;
         margin:0px 5px 0px 5px;
         background-color: #d5d5d5;
-        width:480px;
+        width: -webkit-calc(100% - 100px) !important;
+        width: -moz-calc(100% - 100px) !important;
+        width: calc(100% - 100px) !important;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        height:40px;
+      }
+      .mainbtn h5{
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        margin: 10px 0px 0px 10px;;
       }
       .LocalPlayer{
         -moz-transition:all 0.7s ease;
@@ -443,7 +440,29 @@
         transition:all 0.7s ease;
         height:40px;
         width:auto;
-        margin:5px 5px 0px 0px;
+        margin:5px 0px 0px 0px;
+      }
+      .line{
+        display: none;
+        width: auto;
+        height: 5px;
+        background-color: white;
+        margin: 30px 10px 0px 10px;
+      }
+      .progress{
+        background-color: gray;
+        height: 5px;
+        width: 0%;
+        border-radius: 0px
+      }
+      .time{
+        display:none;
+        float: right;
+        height: 25px;
+        margin: 5px 5px 0px 0px;
+      }
+      .play{
+        background-image: url(/assets/icons/pause.png);
       }
     </style>
     <!-- Le javascript
@@ -473,6 +492,14 @@
           }
         });
           $('.opennav').css({'height': $(window).height()/2 + 'px'});
+          VK.init({
+            apiId: 3791305
+          });
+          var $this = this;
+          $('.vkinfo').html('<li><a style="height: 50px" id="login_button" href="#">Sign in</a></li>');
+          $('#login_button').click(function(event){VK.Auth.login($this.authInfo(event))});
+          //VK.UI.button('login_button');
+          VK.Auth.getLoginStatus(function(event){$this.authInfo(event)});
           this.bindAll();
           /*if(window.location.hash != ''){
             ans = window.location.hash.split('#')[1].split('&');
@@ -567,250 +594,257 @@
           $('.save').click(function(event){document.forms['rename'].submit()});
           $('.modal-body').html('<form class="input-group form-rename" name="rename" action="rename.php" method="POST"><input class="inputrename form-control" name="newname" type="text" value="' + $(FModal).closest('.fileitem').data('name') + '" /></input><input type="hidden" name="oldname" value="'+$(FModal).closest('.fileitem').data('name')+'"></input><input type="hidden" name="folder" value="'+$(FModal).closest('.fileitem').data('folder')+'"></input></form>');
           $('#ModalFile').modal('toggle');
-      },
-      FileEdit: function(FEModal){
-        $('.modal-footer').removeClass('fedit');
-        $text = $('.filetext').html();
-        $('#btns').html('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>');
-        $('.save').click(function(event){document.forms['editfile'].submit()});
-        $('.modal-body').html('<form class="input-group" style="margin:0px;" name="editfile" action="editfile.php" method="POST"><textarea  class="form-control" type="text" name="newtext">'+$text+'</textarea><input type="hidden" name="filefolder" value="'+$(FEModal).closest('.fileitem').data('file')+'"></form>');
-      },
-      ModalFileExtract: function(FModal){
-        $('#ModalFileLabel').html($(FModal).closest('.fileitem').data('name'));
-        $('.modal-footer').removeClass('fedit');
-        $('.modal-footer').html('<button type="button" class="btn btn-default" data-dismiss="modal">Close</button><button type="button" class="btn btn-primary save">Extract</button>');
-        $('.save').click(function(event){document.forms['extractfile'].submit()});
-        $('.modal-body').html('<form style="margin:0px;" name="extractfile" action="extractfile.php" method="POST"><input type="hidden" name="zipfolder" value="'+$(FModal).closest('.fileitem').data('file')+'"><input type="hidden" name="filename" value="'+$(FModal).closest('.fileitem').data('name')+'">Extract to this folder of the same name?</form>');
-        $('#ModalFile').modal('toggle');
-      },
-      UploadProgress: function(event,name){
-        var percent = parseInt(event.loaded / event.total * 100);
-        //console.log('загрузка' + percent + '%');
-        $('.dropbox-modal').html('<div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="'+ percent +'" aria-valuemin="0" aria-valuemax="100" style="width:'+ percent +'%;"><h4>Uploading '+ name +'</h4></div></div>');
-      },
-      StateChange: function(event){
-        var $this = this;
-        if (event.target.readyState == 4) {
-          if (event.target.status == 200) {
-              if(this.fdecode == null){
-                folder = '';
-              }else{
-                folder = this.fdecode;
-              }
-              var response  = event.target.responseText;
-              namet = jQuery.parseJSON(response);
-              name = namet['name'];
-              type = namet['MIME'];
-              icotype = this.GetIco(type,name);
-              dropdown = this.GetDropdown(icotype[1],folder+'/'+ name);
-              var file = '<div data-folder="'+ folder +'" data-mime="'+ type +'" data-name="'+ name +'" data-file="'+ folder+'/'+ name +'" data-type="' + icotype[1] + '" class="col-lg-4 fileitem"><img class="img" src="/assets/icons/'+ icotype[0] +'">          <h5 title="'+ name +'" class="title">'+ ((name.length > 10)?name.substr(0,9) + '...':name) +'</h5>          <!--<h5 class="title"></h5> --><div class="btn-group btn-group-file"><a class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" href="#">Action<span class="caret"></span></a><ul class="dropdown-menu"><!-- dropdown menu links -->'+dropdown+'<li class="divider"></li><li><a tabindex="-1" class="delete" href="#"><span class="glyphicon glyphicon-trash"></span> Delete</a></li></ul></div></div>'
-              $('.row').append(file);
-              this.unbindAll();
-              this.bindAll();
-              $('.dropbox-modal').animate({opacity: 0}, 500, function() {$(this).remove();});
-              $('body').append('<div class="dropbox-modal"><div class="progress"><div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width:100%;"><h4>Saved with name  '+ name +'</h4></div></div></div>');
-              $('.dropbox-modal').delay(1000).animate({opacity: 0}, 800, function() {$(this).remove();})
-          } else {
-              console.log('download failed!');
-          }
-        }
-      },
-      GetIco:function(type,name){
-        var $group = type.split('/')
-        switch($group[0]){
-          case 'audio':
-            $ico = 'audio.png';
-          break;
-          case 'application':
-            $ico = 'application.png';
-            if(type == 'application/x-bittorrent'){
-              $group[0] = 'torrent';
-              $ico = 'torrent.png';
-            }else if(type == 'application/zip'){
-              $group[0] = 'zip';
-              $ico = 'zip.png';
-            }else if(type == 'application/x-rar'){
-              $group[0] = 'x-rar';
-              $ico = 'archive.png';
-            }else{
-              $ico = 'application.png';
-            }
-          break;
-          case 'text':
-            $ico = 'document.png';
-          break;
-          case 'image':
-            if(type == 'image/gif'){
-              $group[0] = 'image';
-              $ico = 'gif.png';
-            }else{
-              $ico = 'image.png';
-            }
-          break;
-          case 'video':
-            $ico = 'video.png';
-          break; 
-          default:
-            $ico = 'application.png';
-            $group[0] = 'application';
-          break;
-        }
-        return [$ico,$group[0]];
-      },
-      GetDropdown:function(type,link){
-        var dropdown;
-        dropdown = '';
-        switch(type){
-          case 'audio':
-          case 'video':
-          case 'image':
-          case 'text':
-            dropdown+= '<li><a tabindex="-1" href="' + encodeURIComponent(link.replace('/\\/g','/')) + '" target="_blank"><span class="glyphicon glyphicon-eye-open"></span> Open in new tab</a></li><li><a tabindex="-1" class="btnrename" href="#"><span class="glyphicon glyphicon-pencil"></span> Rename</a></li>';
-          break;
-          case 'x-rar':
-            dropdown+= '<li><a tabindex="-1" class="btnrename" href="#"><span class="glyphicon glyphicon-pencil"></span> Rename</a></li><li><a class="btnextract" tabindex="-1" href="#"><span class="glyphicon glyphicon-share-alt"></span> Unzip</a></li>';
-          break;
-          case 'x-rar':
-            dropdown+= '<li><a tabindex="-1" class="btnrename" href="#"><span class="glyphicon glyphicon-pencil"></span> Rename</a></li><li><a class="btnextract" tabindex="-1" href="#"><span class="glyphicon glyphicon-share-alt"></span> Extract</a></li>';
-          break;
-          default:
-            dropdown+= '<li><a tabindex="-1" class="btnrename" href="#"><span class="glyphicon glyphicon-pencil"></span> Rename</a></li><li><a tabindex="-1" href="' + encodeURIComponent(link.replace('/\\/g','/')) + '" download><span class="glyphicon glyphicon-download-alt"></span> Download</a></li>';;
-          break; 
-          };
-        return dropdown;
-      },
-      bindAll: function(){
-        var $this = this;
-        $('.navbar-brand').click(function(){
-            if($('.chevron').hasClass('opennav')){
-              $('.opennav').css({'height': 0, 'background-color': '#EEEEEE'});
-              $('.chevron').removeClass('opennav');
-            }else{
-              $('.chevron').addClass('opennav');
-              $('.opennav').css({'height': $(window).height()/2 + 'px'});
-            }
-          });
-          $('#ModalFile').on('hidden.bs.modal', function () {
-            $('.modal-body').html('');
-            $('#ModalFileLabel').html('');
-            $('.modal-footer').addClass('fedit');
-            $('.modal-footer').html('<button type="button" class="btn btn-default" data-dismiss="modal">Close</button><button type="button" class="btn btn-primary save">Save changes</button>');
-            $('#btns').html('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>');
-            if($this.sound != null){
-              $this.sound.unload();
-              $this.sound = null;
-              soundManager.destroySound('LocalSound');
-            }
-          })
-        $('.delete').click(function(event){$this.FDelete(event.currentTarget)});
-        $('.btnrename').click(function(event){$this.ModalFileRename(event.currentTarget)});
-        $('.btnextract').click(function(event){$this.ModalFileExtract(event.currentTarget)});
-        $('.img').click(function(event){$this.ModalFileOpen(event.currentTarget)});
-        $('html').bind('dragover', function(event){
-          $('.dropbox-indicator').css('display','block'); 
-            return false;
-          }).bind('dragleave', function(event){
-            $('.dropbox-indicator').css('display','none'); 
-            return false;
-          }).bind('drop', function(){
-            event.preventDefault(); 
-            $('.dropbox-indicator').css('display','none'); 
-            var file = event.dataTransfer.files[0];
-            var xhr = new XMLHttpRequest();
-            var fname = event.dataTransfer.files[0]['name'];
-            xhr.upload.addEventListener('progress', function(event){$this.UploadProgress(event,fname)}, false);
-            xhr.onreadystatechange = function(event){$this.StateChange(event)};
-            xhr.open('POST', '/upload.php');
-            var fd = new FormData;
-            fd.append("file", file);
-            if($this.f != null){fd.append("folder", $this.f);}
-            xhr.send(fd);
-            $('body').append('<div class="dropbox-modal"></div>');
-          });
-          $('.createfolder').click(function(event){$this.CreateFolder(event.currentTarget)});
-          $('.playbtn').click(function(){
-            if($this.sound == null){
-              $this.sound = soundManager.createSound({
-                id:$(this).data('id'),
-                url:$(this).data('file')
-              }).play();
-              $(this).addClass('play');
-            }else{
-              if($this.sound['id'] == $(this).data('id')){
-                if($(this).hasClass('play')){
-                  $this.sound.pause();
-                  $(this).removeClass('play');
-                  $(this).addClass('pause');
+        },
+        FileEdit: function(FEModal){
+          $('.modal-footer').removeClass('fedit');
+          $text = $('.filetext').html();
+          $('#btns').html('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>');
+          $('.save').click(function(event){document.forms['editfile'].submit()});
+          $('.modal-body').html('<form class="input-group" style="margin:0px;" name="editfile" action="editfile.php" method="POST"><textarea  class="form-control" type="text" name="newtext">'+$text+'</textarea><input type="hidden" name="filefolder" value="'+$(FEModal).closest('.fileitem').data('file')+'"></form>');
+        },
+        ModalFileExtract: function(FModal){
+          $('#ModalFileLabel').html($(FModal).closest('.fileitem').data('name'));
+          $('.modal-footer').removeClass('fedit');
+          $('.modal-footer').html('<button type="button" class="btn btn-default" data-dismiss="modal">Close</button><button type="button" class="btn btn-primary save">Extract</button>');
+          $('.save').click(function(event){document.forms['extractfile'].submit()});
+          $('.modal-body').html('<form style="margin:0px;" name="extractfile" action="extractfile.php" method="POST"><input type="hidden" name="zipfolder" value="'+$(FModal).closest('.fileitem').data('file')+'"><input type="hidden" name="filename" value="'+$(FModal).closest('.fileitem').data('name')+'">Extract to this folder of the same name?</form>');
+          $('#ModalFile').modal('toggle');
+        },
+        UploadProgress: function(event,name){
+          var percent = parseInt(event.loaded / event.total * 100);
+          //console.log('загрузка' + percent + '%');
+          $('.dropbox-modal').html('<div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="'+ percent +'" aria-valuemin="0" aria-valuemax="100" style="width:'+ percent +'%;"><h4>Uploading '+ name +'</h4></div></div>');
+        },
+        StateChange: function(event){
+          var $this = this;
+          if (event.target.readyState == 4) {
+            if (event.target.status == 200) {
+                if(this.fdecode == null){
+                  folder = '';
                 }else{
-                  $this.sound.resume();
-                  $(this).removeClass('pause');
-                  $(this).addClass('play');
+                  folder = this.fdecode;
                 }
-              }else{
-                $('.playbtn').removeClass('pause');
-                $('.playbtn').removeClass('play');
-                $this.sound.unload();
-                $this.sound=null;
-                $this.sound = soundManager.createSound({
-                  id:$(this).data('id'),
-                  url:$(this).data('file')
-                }).play();
-                $(this).addClass('play');
-              }
+                var response  = event.target.responseText;
+                namet = jQuery.parseJSON(response);
+                name = namet['name'];
+                type = namet['MIME'];
+                icotype = this.GetIco(type,name);
+                dropdown = this.GetDropdown(icotype[1],folder+'/'+ name);
+                var file = '<div data-folder="'+ folder +'" data-mime="'+ type +'" data-name="'+ name +'" data-file="'+ folder+'/'+ name +'" data-type="' + icotype[1] + '" class="col-lg-4 fileitem"><img class="img" src="/assets/icons/'+ icotype[0] +'">          <h5 title="'+ name +'" class="title">'+ ((name.length > 10)?name.substr(0,9) + '...':name) +'</h5>          <!--<h5 class="title"></h5> --><div class="btn-group btn-group-file"><a class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" href="#">Action<span class="caret"></span></a><ul class="dropdown-menu"><!-- dropdown menu links -->'+dropdown+'<li class="divider"></li><li><a tabindex="-1" class="delete" href="#"><span class="glyphicon glyphicon-trash"></span> Delete</a></li></ul></div></div>'
+                $('.row').append(file);
+                this.unbindAll();
+                this.bindAll();
+                $('.dropbox-modal').animate({opacity: 0}, 500, function() {$(this).remove();});
+                $('body').append('<div class="dropbox-modal"><div class="progress"><div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width:100%;"><h4>Saved with name  '+ name +'</h4></div></div></div>');
+                $('.dropbox-modal').delay(1000).animate({opacity: 0}, 800, function() {$(this).remove();})
+            } else {
+                console.log('download failed!');
             }
-          });
-      },
-      unbindAll: function(){
-        $('.navbar-brand').unbind();
-        $('#ModalFile').unbind();
-        $('.delete').unbind();
-        $('.btnrename').unbind();
-        $('.btnextract').unbind();
-        $('.img').unbind();
-        $('html').unbind();
-        $('.createfolder').unbind();
-      },
-      CreateFolder: function(){
-        var $this = this;
-        $('#ModalFileLabel').html('Create folder');
-        $('.modal-footer').removeClass('fedit');
-        $('.save').click(function(event){document.forms['CreateFolder'].submit()});
-        $('.modal-body').html('<form class="input-group form-rename" name="CreateFolder" action="createfolder.php" method="POST"><input class="form-control inputrename" value="new folder" name="foldername" type="text" /><input type="hidden" name="folder" value="'+ $this.fdecode +'" /></form>');
-        $('#ModalFile').modal('toggle');
-      }
+          }
+        },
+        GetIco:function(type,name){
+          var $group = type.split('/')
+          switch($group[0]){
+            case 'audio':
+              $ico = 'audio.png';
+            break;
+            case 'application':
+              $ico = 'application.png';
+              if(type == 'application/x-bittorrent'){
+                $group[0] = 'torrent';
+                $ico = 'torrent.png';
+              }else if(type == 'application/zip'){
+                $group[0] = 'zip';
+                $ico = 'zip.png';
+              }else if(type == 'application/x-rar'){
+                $group[0] = 'x-rar';
+                $ico = 'archive.png';
+              }else{
+                $ico = 'application.png';
+              }
+            break;
+            case 'text':
+              $ico = 'document.png';
+            break;
+            case 'image':
+              if(type == 'image/gif'){
+                $group[0] = 'image';
+                $ico = 'gif.png';
+              }else{
+                $ico = 'image.png';
+              }
+            break;
+            case 'video':
+              $ico = 'video.png';
+            break; 
+            default:
+              $ico = 'application.png';
+              $group[0] = 'application';
+            break;
+          }
+          return [$ico,$group[0]];
+        },
+        GetDropdown:function(type,link){
+          var dropdown;
+          dropdown = '';
+          switch(type){
+            case 'audio':
+            case 'video':
+            case 'image':
+            case 'text':
+              dropdown+= '<li><a tabindex="-1" href="' + encodeURIComponent(link.replace('/\\/g','/')) + '" target="_blank"><span class="glyphicon glyphicon-eye-open"></span> Open in new tab</a></li><li><a tabindex="-1" class="btnrename" href="#"><span class="glyphicon glyphicon-pencil"></span> Rename</a></li>';
+            break;
+            case 'x-rar':
+              dropdown+= '<li><a tabindex="-1" class="btnrename" href="#"><span class="glyphicon glyphicon-pencil"></span> Rename</a></li><li><a class="btnextract" tabindex="-1" href="#"><span class="glyphicon glyphicon-share-alt"></span> Unzip</a></li>';
+            break;
+            case 'x-rar':
+              dropdown+= '<li><a tabindex="-1" class="btnrename" href="#"><span class="glyphicon glyphicon-pencil"></span> Rename</a></li><li><a class="btnextract" tabindex="-1" href="#"><span class="glyphicon glyphicon-share-alt"></span> Extract</a></li>';
+            break;
+            default:
+              dropdown+= '<li><a tabindex="-1" class="btnrename" href="#"><span class="glyphicon glyphicon-pencil"></span> Rename</a></li><li><a tabindex="-1" href="' + encodeURIComponent(link.replace('/\\/g','/')) + '" download><span class="glyphicon glyphicon-download-alt"></span> Download</a></li>';;
+            break; 
+            };
+          return dropdown;
+        },
+        bindAll: function(){
+          var $this = this;
+          $('.navbar-brand').click(function(){
+              if($('.chevron').hasClass('opennav')){
+                $('.opennav').css({'height': 0, 'background-color': '#EEEEEE'});
+                $('.chevron').removeClass('opennav');
+              }else{
+                $('.chevron').addClass('opennav');
+                $('.opennav').css({'height': $(window).height()/2 + 'px'});
+              }
+            });
+            $('#ModalFile').on('hidden.bs.modal', function () {
+              $('.modal-body').html('');
+              $('#ModalFileLabel').html('');
+              $('.modal-footer').addClass('fedit');
+              $('.modal-footer').html('<button type="button" class="btn btn-default" data-dismiss="modal">Close</button><button type="button" class="btn btn-primary save">Save changes</button>');
+              $('#btns').html('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>');
+              if($this.sound != null){
+                $this.sound.unload();
+                $this.sound = null;
+                soundManager.destroySound('LocalSound');
+              }
+            })
+          $('.delete').click(function(event){$this.FDelete(event.currentTarget)});
+          $('.btnrename').click(function(event){$this.ModalFileRename(event.currentTarget)});
+          $('.btnextract').click(function(event){$this.ModalFileExtract(event.currentTarget)});
+          $('.img').click(function(event){$this.ModalFileOpen(event.currentTarget)});
+          $('html').bind('dragover', function(event){
+            $('.dropbox-indicator').css('display','block'); 
+              return false;
+            }).bind('dragleave', function(event){
+              $('.dropbox-indicator').css('display','none'); 
+              return false;
+            }).bind('drop', function(){
+              event.preventDefault(); 
+              $('.dropbox-indicator').css('display','none'); 
+              var file = event.dataTransfer.files[0];
+              var xhr = new XMLHttpRequest();
+              var fname = event.dataTransfer.files[0]['name'];
+              xhr.upload.addEventListener('progress', function(event){$this.UploadProgress(event,fname)}, false);
+              xhr.onreadystatechange = function(event){$this.StateChange(event)};
+              xhr.open('POST', '/upload.php');
+              var fd = new FormData;
+              fd.append("file", file);
+              if($this.f != null){fd.append("folder", $this.f);}
+              xhr.send(fd);
+              $('body').append('<div class="dropbox-modal"></div>');
+            });
+            $('.createfolder').click(function(event){$this.CreateFolder(event.currentTarget)});
+
+            $('.playbtn').click(function(){
+              if($this.sound == null){
+                $this.sound = $this.LBSound(this,$(this).data('id'),$(this).data('file'),$(this).data('duration'));
+              }else{
+                if($this.sound['id'] == $(this).data('id')){
+                  if($(this).hasClass('play')){
+                    $this.sound.pause(); 
+                  }else{
+                    $this.sound.resume();
+                  }
+                }else{
+                  $this.sound.unload();
+                  $this.sound=null;
+                  $this.sound = $this.LBSound(this,$(this).data('id'),$(this).data('file'),$(this).data('duration'));
+                }
+              }
+            });
+        },
+        unbindAll: function(){
+          $('.navbar-brand').unbind();
+          $('#ModalFile').unbind();
+          $('.delete').unbind();
+          $('.btnrename').unbind();
+          $('.btnextract').unbind();
+          $('.img').unbind();
+          $('html').unbind();
+          $('.createfolder').unbind();
+        },
+        CreateFolder: function(){
+          var $this = this;
+          $('#ModalFileLabel').html('Create folder');
+          $('.modal-footer').removeClass('fedit');
+          $('.save').click(function(event){document.forms['CreateFolder'].submit()});
+          $('.modal-body').html('<form class="input-group form-rename" name="CreateFolder" action="createfolder.php" method="POST"><input class="form-control inputrename" value="new folder" name="foldername" type="text" /><input type="hidden" name="folder" value="'+ $this.fdecode +'" /></form>');
+          $('#ModalFile').modal('toggle');
+        },
+        authInfo: function(response) {
+          var $self = this;
+              if (response.session) {
+                VK.Api.call('users.get', {user_ids: response.session.mid, fields:'photo_50'}, function(r) { 
+                  if(r.response) { 
+                    $('.vkinfo').html('<li class="usergroup"><a href="http://vk.com/id'+r.response[0].uid+'">'+r.response[0].first_name+' '+r.response[0].last_name+'</a></li><li class="divider-vertical usergroup"></li><li class="dropdown usergroup"><a href="#" class="dropdown-toggle photo_50drop" data-toggle="dropdown"><img class="photo_50" src="'+r.response[0].photo_50+'"></a><ul class="dropdown-menu"><li><a href="#">Action</a></li><li><a href="/signout.php">Sign out</a></li></ul></li>');
+                  } 
+                });
+                VK.Api.call('audio.get', {owner_id: response.session.mid, access_token:response.session.sig,count:100}, function(r) { 
+                  if(r.response) { 
+                    for (var i = 1; i <= r.response.length-1; i++) {
+                      $('.chevron').append('<div class="LocalPlayer"><div data-duration="'+r.response[i].duration+'" data-file="'+r.response[i].url+'" data-id="'+r.response[i].aid+'" class="playbtn"></div><div class="mainbtn"><h5 class="title">'+r.response[i].artist+' - '+r.response[i].title+'</h5><h6 class="title time"></h6><div class="line"><div class="progress"></div></div></div><a href="'+r.response[i].url+'" download><div class="downloadbtn"></div></a></div>');
+                    };
+                    $('.mainbtn').css({'width': $('.mainbtn').parent().width()-100 + 'px'});
+                    $self.unbindAll();
+                    $self.bindAll();
+                  } 
+                });  
+              }
+        },
+        LBSound: function(Sevent,id,url,duration){
+          return soundManager.createSound({
+                    id:id,
+                    url:url,
+                    onplay: function(){
+                      $('.playbtn').removeClass('pause');
+                      $('.playbtn').removeClass('play');
+                      $('.progress').css('width','0%');
+                      $('.time').html('');
+                      $('.line').removeClass('show');
+                      $('.time').removeClass('show');
+                      $(Sevent).parent().find('.line').addClass('show');
+                      $(Sevent).parent().find('.time').addClass('show');
+                      $(Sevent).addClass('play');
+                    },
+                    whileplaying: function(){
+                      $(Sevent).parent().find('.progress').css('width',(Math.floor((this.position/1000)/duration*1000)/10)+'%');
+                      $(Sevent).parent().find('.time').html('-'+(Math.floor((duration-(this.position/1000))/60))+':'+(Math.floor(((duration-(this.position/1000))/60-Math.floor((duration-(this.position/1000))/60))*60)));
+                    },
+                    onpause: function(){
+                      $(Sevent).removeClass('play');
+                      $(Sevent).addClass('pause');
+                    },
+                    onresume: function(){
+                      $(Sevent).removeClass('pause');
+                      $(Sevent).addClass('play');
+                    }
+                  }).play();
+        }
       }
       jQuery(document).ready(function($) {
         var  UI = new LBUI();
         UI.init();
-        VK.init({
-          apiId: 3791305
-        });
-        function authInfo(response) {
-          if (response.session) {
-            VK.Api.call('users.get', {user_ids: response.session.mid, fields:'photo_50'}, function(r) { 
-              if(r.response) { 
-                $('.vkinfo').html('<li class="usergroup"><a href="http://vk.com/id'+r.response[0].uid+'">'+r.response[0].first_name+' '+r.response[0].last_name+'</a></li><li class="divider-vertical usergroup"></li><li class="dropdown usergroup"><a href="#" class="dropdown-toggle photo_50drop" data-toggle="dropdown"><img class="photo_50" src="'+r.response[0].photo_50+'"></a><ul class="dropdown-menu"><li><a href="#">Action</a></li><li><a href="/signout.php">Sign out</a></li></ul></li>');
-              } 
-            });
-            VK.Api.call('audio.get', {owner_id: response.session.mid, access_token:response.session.sig,count:100}, function(r) { 
-              if(r.response) { 
-                for (var i = 1; i <= r.response.length-1; i++) {
-                  $('.chevron').append('<div class="LocalPlayer"><div data-file="'+r.response[i].url+'" data-id="'+r.response[i].aid+'" class="LocalPlayer playbtn"></div><div class="LocalPlayer mainbtn"><h5 class="title">'+r.response[i].artist+' - '+r.response[i].title+'</h5></div><a href="'+r.response[i].url+'" download><div class="LocalPlayer downloadbtn"></div></a></div>');
-                };
-                UI.unbindAll();
-                UI.bindAll();
-              } 
-            });  
-          } else {
-            $('.vkinfo').html('<li class="usergroup"><div id="login_button"></div></li>');
-            $('#login_button').click(function(event){VK.Auth.login(authInfo)});
-            VK.UI.button('login_button');
-          }
-        }
-        $('.vkinfo').html('<li class="usergroup"><div id="login_button"></div></li>');
-        $('#login_button').click(function(event){VK.Auth.login(authInfo)});
-        VK.UI.button('login_button');
-        VK.Auth.getLoginStatus(authInfo);
       });
     </script>
   </body>
