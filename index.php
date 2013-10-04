@@ -403,6 +403,7 @@
         background-size: 30px;
         background-position: 5px;
         background-color: #d5d5d5;
+        float:left;
         height:40px;
       }
       .downloadbtn{
@@ -419,9 +420,7 @@
         display:inline-block;
         margin:0px 5px 0px 5px;
         background-color: #d5d5d5;
-        width: -webkit-calc(100% - 100px) !important;
-        width: -moz-calc(100% - 100px) !important;
-        width: calc(100% - 100px) !important;
+        float:left;
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
@@ -431,6 +430,7 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
+        float:none;
         margin: 10px 0px 0px 10px;;
       }
       .LocalPlayer{
@@ -443,26 +443,72 @@
         margin:5px 0px 0px 0px;
       }
       .line{
+        float:left;
         display: none;
         width: auto;
         height: 5px;
         background-color: white;
-        margin: 30px 10px 0px 10px;
+        margin: 5px 15px 0px 10px;
+      }
+      .volume{
+        display: none;
+        width: 10%;
+        height: 5px;
+        background-color: white;
+        margin: 0 0 0 10px;
+        float:left;
+      }
+      .v_progress{
+        background-color: gray;
+        height: 5px;
+        width: 0%;
+        border-radius: 0px;
+        position: relative;
+        overflow: visible;
       }
       .progress{
         background-color: gray;
         height: 5px;
         width: 0%;
-        border-radius: 0px
+        border-radius: 0px;
+        margin-top: -5px;
+        position: relative;
+        overflow: visible;
+      }
+      .load{
+        width: 0%;
+        height: 5px;
+        background-color: #BEBEBE;
       }
       .time{
-        display:none;
         float: right;
         height: 25px;
+        width:35px;
         margin: 5px 5px 0px 0px;
       }
       .play{
         background-image: url(/assets/icons/pause.png);
+      }
+      .LocalPlayer:hover .playbtn{
+        background-color: #CFCECE;
+      }
+      .LocalPlayer:hover .mainbtn{
+        background-color: #CFCECE;
+      }
+      .LocalPlayer:hover .downloadbtn{
+        background-color: #CFCECE;
+      }
+      .dot{
+        width: 10px;
+        height: 10px;
+        background-color: gray;
+        position: absolute;
+        top: -2.5px;
+        display: none;
+        margin: 0;
+        padding: 0;
+        right: -5px;
+        z-index: 0;
       }
     </style>
     <!-- Le javascript
@@ -478,6 +524,7 @@
       function LBUI(){return this;}
       LBUI.prototype = {
         sound:null,
+        volume:100,
         f: <?=(isset($_GET['f']))?"'".urlencode($_GET['f'])."'":'null'?>,
         fdecode: <?=(isset($_GET['f']))?"'".str_replace('\\', '\\\\', $_GET['f'])."'":'null'?>,
         init: function(){
@@ -730,9 +777,48 @@
               }
             })
           $('.delete').click(function(event){$this.FDelete(event.currentTarget)});
+          /*$('.line').click(function(event){
+            $this.sound.setPosition(Math.floor($(this).parent().parent().find('.playbtn').data('duration')*event.offsetX/$(this).width()*1000));
+          });*/
+          $('.line').bind('mousedown',function(event) {
+            elem = this;
+            $(elem).addClass('down');
+            $(elem).find('.dot').addClass('show');
+            width = event.offsetX;
+            $(elem).find('.progress').css({'width': (width/$(elem).width()*100)+'%'});
+            $(document).bind('mousemove', function(event){
+              width = event.clientX-elem.offsetLeft;
+              if(width >= elem.clientWidth){
+                width = elem.clientWidth;
+              }else if(width<0){
+                width = 0;
+              }
+              $(elem).find('.progress').css({'width': (width/$(elem).width()*100)+'%'});
+            }).bind('mouseup',function(event){$(elem).removeClass('down');$(elem).find('.dot').removeClass('show');$(document).unbind('mousemove').unbind('mouseup').unbind('selectstart').unbind('dragstart');$this.sound.setPosition(Math.floor($(elem).parent().parent().find('.playbtn').data('duration')*width/$(elem).width()*1000));}).bind('selectstart',function(event){return false; event.stopPropagation();}).bind('dragstart',function(event){return false; event.stopPropagation();});
+          });
+          $('.volume').bind('mousedown',function(event) {
+            elem = this;
+            $(elem).addClass('down');
+            if(!$(event.target).hasClass('dot')){
+              width = event.offsetX;
+              $(elem).find('.v_progress').css({'width': (width/$(elem).width()*100)+'%'});
+            }
+            $(document).bind('mousemove', function(event){
+              width = event.clientX-elem.offsetLeft;
+              if(width >= elem.clientWidth){
+                width = elem.clientWidth;
+              }else if(width<0){
+                width = 0;
+              }
+              $(elem).find('.v_progress').css({'width': (width/$(elem).width()*100)+'%'});
+              $this.sound.setVolume(Math.floor(width/$(elem).width()*100));
+            }).bind('mouseup',function(event){$(elem).removeClass('down');$(document).unbind('mousemove').unbind('mouseup').unbind('selectstart').unbind('dragstart');$this.sound.setVolume(Math.floor(width/$(elem).width()*100));$this.volume = $this.sound['volume']}).bind('selectstart',function(event){return false; event.stopPropagation();}).bind('dragstart',function(event){return false; event.stopPropagation();});
+          }).bind('mouseover',function(event){$(this).find('.dot').addClass('show');}).bind('mouseout',function(event){$(this).find('.dot').removeClass('show');});
+
           $('.btnrename').click(function(event){$this.ModalFileRename(event.currentTarget)});
           $('.btnextract').click(function(event){$this.ModalFileExtract(event.currentTarget)});
           $('.img').click(function(event){$this.ModalFileOpen(event.currentTarget)});
+          $(window).resize(function(){$('.mainbtn').css({'width': $('.mainbtn').parent().width()-100 + 'px'});$('.line').css({'width': $('.line').parent().width()-140 + 'px'}); $('.line').css({'width': $('.line').parent().width()-$('.volume').width()-50 + 'px'});});
           $('html').bind('dragover', function(event){
             $('.dropbox-indicator').css('display','block'); 
               return false;
@@ -758,7 +844,7 @@
 
             $('.playbtn').click(function(){
               if($this.sound == null){
-                $this.sound = $this.LBSound(this,$(this).data('id'),$(this).data('file'),$(this).data('duration'));
+                $this.sound = $this.LBSound(this,$this);
               }else{
                 if($this.sound['id'] == $(this).data('id')){
                   if($(this).hasClass('play')){
@@ -768,8 +854,9 @@
                   }
                 }else{
                   $this.sound.unload();
+                  $this.sound.destruct();
                   $this.sound=null;
-                  $this.sound = $this.LBSound(this,$(this).data('id'),$(this).data('file'),$(this).data('duration'));
+                  $this.sound = $this.LBSound(this,$this);
                 }
               }
             });
@@ -783,6 +870,10 @@
           $('.img').unbind();
           $('html').unbind();
           $('.createfolder').unbind();
+          $('.playbtn').unbind();
+          $(window).unbind();
+          $('line').unbind();
+          $('.volume').unbind():
         },
         CreateFolder: function(){
           var $this = this;
@@ -803,33 +894,69 @@
                 VK.Api.call('audio.get', {owner_id: response.session.mid, access_token:response.session.sig,count:100}, function(r) { 
                   if(r.response) { 
                     for (var i = 1; i <= r.response.length-1; i++) {
-                      $('.chevron').append('<div class="LocalPlayer"><div data-duration="'+r.response[i].duration+'" data-file="'+r.response[i].url+'" data-id="'+r.response[i].aid+'" class="playbtn"></div><div class="mainbtn"><h5 class="title">'+r.response[i].artist+' - '+r.response[i].title+'</h5><h6 class="title time"></h6><div class="line"><div class="progress"></div></div></div><a href="'+r.response[i].url+'" download><div class="downloadbtn"></div></a></div>');
+                      sec = Math.round((r.response[i].duration/60-Math.floor(r.response[i].duration/60))*60);
+                      if(sec<10){
+                        sec = '0'+ sec;
+                      }
+                      $('.chevron').append('<div class="LocalPlayer MainContainer"><div data-duration="'+r.response[i].duration+'" id="'+i+'" data-file="'+r.response[i].url+'" data-id="'+i+'" class="playbtn"></div><div class="mainbtn"><h6 class="title time">'+(Math.floor(r.response[i].duration/60))+':'+sec+'</h6><h5 class="title">'+r.response[i].artist+' - '+r.response[i].title+'</h5><div class="line"><div class="load"></div><div class="progress"><div class="dot"></div></div></div><div class="volume"><div class="v_progress"><div class="dot"></div></div></div></div><a class="downloadbtn" href="'+r.response[i].url+'" download></a></div>');
                     };
                     $('.mainbtn').css({'width': $('.mainbtn').parent().width()-100 + 'px'});
+                    $('.line').css({'width': $('.line').parent().width()-$('.volume').width()-50 + 'px'});
                     $self.unbindAll();
                     $self.bindAll();
                   } 
                 });  
               }
         },
-        LBSound: function(Sevent,id,url,duration){
+        LBSound: function(Sevent,main){
+          id = $(Sevent).attr('id');
+          url = $(Sevent).data('file');
+          duration = $(Sevent).data('duration');
           return soundManager.createSound({
                     id:id,
                     url:url,
+                    volume:main.volume,
                     onplay: function(){
-                      $('.playbtn').removeClass('pause');
-                      $('.playbtn').removeClass('play');
+                      if($('.playbtn').hasClass('play')){
+                        var prev_duration = $('.play').data('duration');
+                        sec = Math.round((prev_duration/60-Math.floor(prev_duration/60))*60);
+                        if(sec<10){
+                          sec = '0'+ sec;
+                        } 
+                        $('.play').parent().find('.time').html((Math.floor(prev_duration/60))+':'+sec); 
+                        $('.playbtn').removeClass('play');
+                      }
+
+                      if($('.playbtn').hasClass('pause')){
+                        var prev_duration = $('.pause').data('duration');
+                        sec = Math.round((prev_duration/60-Math.floor(prev_duration/60))*60);
+                        if(sec<10){
+                          sec = '0'+ sec;
+                        }
+                        var prev_duration = $('.pause').data('duration'); 
+                        $('.pause').parent().find('.time').html((Math.floor(prev_duration/60))+':'+sec);  
+                        $('.playbtn').removeClass('pause');
+                      }
                       $('.progress').css('width','0%');
-                      $('.time').html('');
                       $('.line').removeClass('show');
-                      $('.time').removeClass('show');
+                      $('.volume').removeClass('show');
                       $(Sevent).parent().find('.line').addClass('show');
-                      $(Sevent).parent().find('.time').addClass('show');
+                      $(Sevent).parent().find('.volume').addClass('show');
+                      $(Sevent).parent().find('.v_progress').css('width',main.volume+'%')
                       $(Sevent).addClass('play');
                     },
                     whileplaying: function(){
-                      $(Sevent).parent().find('.progress').css('width',(Math.floor((this.position/1000)/duration*1000)/10)+'%');
-                      $(Sevent).parent().find('.time').html('-'+(Math.floor((duration-(this.position/1000))/60))+':'+(Math.floor(((duration-(this.position/1000))/60-Math.floor((duration-(this.position/1000))/60))*60)));
+                      if(!$(Sevent).parent().find('.line').hasClass('down')){
+                        $(Sevent).parent().find('.progress').css('width',(Math.round((this.position/1000)/duration*1000)/10)+'%');
+                      }
+                      sec = Math.floor(((duration-(this.position/1000))/60-Math.floor((duration-(this.position/1000))/60))*60);
+                      if(sec<10){
+                        sec = '0'+ sec;
+                      }
+                      $(Sevent).parent().find('.time').html('-'+(Math.floor((duration-(this.position/1000))/60))+':'+sec);
+                    },
+                    whileloading: function(){
+                      $(Sevent).parent().find('.load').css('width',(Math.round(this.bytesLoaded/this.bytesTotal*1000)/10)+'%');
                     },
                     onpause: function(){
                       $(Sevent).removeClass('play');
@@ -838,6 +965,16 @@
                     onresume: function(){
                       $(Sevent).removeClass('pause');
                       $(Sevent).addClass('play');
+                    },
+                    onfinish: function(){
+                      Next = $('#'+(this.id*1+1));
+                      if(Next.length === 0){
+                        Next = $('#1');
+                      }
+                      main.sound.unload();
+                      main.sound.destruct();
+                      main.sound=null;
+                      main.sound = main.LBSound(Next,main);
                     }
                   }).play();
         }
