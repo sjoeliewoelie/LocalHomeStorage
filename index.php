@@ -449,6 +449,7 @@
         height: 5px;
         background-color: white;
         margin: 5px 15px 0px 10px;
+        cursor: pointer;
       }
       .volume{
         display: none;
@@ -457,6 +458,7 @@
         background-color: white;
         margin: 0 0 0 10px;
         float:left;
+        cursor: pointer;
       }
       .v_progress{
         background-color: gray;
@@ -509,6 +511,7 @@
         padding: 0;
         right: -5px;
         z-index: 0;
+        cursor: pointer;
       }
     </style>
     <!-- Le javascript
@@ -873,7 +876,7 @@
           $('.playbtn').unbind();
           $(window).unbind();
           $('line').unbind();
-          $('.volume').unbind():
+          $('.volume').unbind();
         },
         CreateFolder: function(){
           var $this = this;
