@@ -431,13 +431,13 @@
         white-space: nowrap;
         overflow: hidden;
         float:none;
-        margin: 10px 0px 0px 10px;;
+        margin: 10px 0px 0px 1%;;
       }
       .LocalPlayer{
-        -moz-transition:all 0.7s ease;
-        -o-transition:all 0.7s ease;
-        -webkit-transition:all 0.7s ease;
-        transition:all 0.7s ease;
+        -moz-transition:all 1s ease;
+        -o-transition:all 1s ease;
+        -webkit-transition:all 1s ease;
+        transition:all 1s ease;
         height:40px;
         width:auto;
         margin:5px 0px 0px 0px;
@@ -445,18 +445,18 @@
       .line{
         float:left;
         display: none;
-        width: auto;
+        width: 73%;
         height: 5px;
         background-color: white;
-        margin: 5px 15px 0px 10px;
+        margin: 5px 1% 0px 1%;
         cursor: pointer;
       }
       .volume{
         display: none;
-        width: 10%;
+        width: 22%;
         height: 5px;
         background-color: white;
-        margin: 0 0 0 10px;
+        margin: 0 0 0 1%;
         float:left;
         cursor: pointer;
       }
@@ -512,6 +512,32 @@
         right: -5px;
         z-index: 0;
         cursor: pointer;
+      }
+      .a_tooltip{
+        opacity: 0.7;
+        width: 36px;
+        height: 20px;
+        position: absolute;
+        top: -29px;
+        right: -16.5px;
+        background-color: black;
+        display:none;
+        z-index: 222;
+      }
+      .a_triangle{
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 7px solid black;
+        position: absolute;
+        bottom: -7px;
+        left: 14px;
+      }
+      .a_tooltip-title{
+        margin: 3px 0px 0px 0px;
+        color: #999999;
+        text-align: center;
       }
     </style>
     <!-- Le javascript
@@ -787,8 +813,15 @@
             elem = this;
             $(elem).addClass('down');
             $(elem).find('.dot').addClass('show');
+            $(elem).find('.a_tooltip').addClass('show');
             width = event.offsetX;
             $(elem).find('.progress').css({'width': (width/$(elem).width()*100)+'%'});
+            min = Math.floor(Math.floor($(elem).parent().parent().find('.playbtn').data('duration')*width/$(elem).width())/60);
+              sec = Math.round((Math.floor($(elem).parent().parent().find('.playbtn').data('duration')*width/$(elem).width())/60-Math.floor(Math.floor($(elem).parent().parent().find('.playbtn').data('duration')*width/$(elem).width())/60))*60);
+              if (sec<10){
+                sec = '0'+sec;
+              }
+              $(elem).find('.a_tooltip-title').html(min + ':' + sec);
             $(document).bind('mousemove', function(event){
               width = event.clientX-elem.offsetLeft;
               if(width >= elem.clientWidth){
@@ -797,14 +830,23 @@
                 width = 0;
               }
               $(elem).find('.progress').css({'width': (width/$(elem).width()*100)+'%'});
-            }).bind('mouseup',function(event){$(elem).removeClass('down');$(elem).find('.dot').removeClass('show');$(document).unbind('mousemove').unbind('mouseup').unbind('selectstart').unbind('dragstart');$this.sound.setPosition(Math.floor($(elem).parent().parent().find('.playbtn').data('duration')*width/$(elem).width()*1000));}).bind('selectstart',function(event){return false; event.stopPropagation();}).bind('dragstart',function(event){return false; event.stopPropagation();});
-          });
+              min = Math.floor(Math.floor($(elem).parent().parent().find('.playbtn').data('duration')*width/$(elem).width())/60);
+              sec = Math.round((Math.floor($(elem).parent().parent().find('.playbtn').data('duration')*width/$(elem).width())/60-Math.floor(Math.floor($(elem).parent().parent().find('.playbtn').data('duration')*width/$(elem).width())/60))*60);
+              if (sec<10){
+                sec = '0'+sec;
+              }
+              $(elem).find('.a_tooltip-title').html(min + ':' + sec);
+            }).bind('mouseup',function(event){$(elem).removeClass('down');$(elem).find('.dot').removeClass('show');$(document).unbind('mousemove').unbind('mouseup').unbind('selectstart').unbind('dragstart');$(elem).find('.a_tooltip').removeClass('show');$this.sound.setPosition(Math.floor($(elem).parent().parent().find('.playbtn').data('duration')*width/$(elem).width()*1000));}).bind('selectstart',function(event){return false; event.stopPropagation();}).bind('dragstart',function(event){return false; event.stopPropagation();});
+          }).bind('mouseover',function(event){$(this).find('.a_tooltip').addClass('show');}).bind('mouseout',function(event){$(this).find('.a_tooltip').removeClass('show');});
           $('.volume').bind('mousedown',function(event) {
             elem = this;
             $(elem).addClass('down');
+            $(elem).find('.a_tooltip').addClass('show');
+            $(elem).unbind('mouseout');
             if(!$(event.target).hasClass('dot')){
               width = event.offsetX;
               $(elem).find('.v_progress').css({'width': (width/$(elem).width()*100)+'%'});
+              $(elem).find('.a_tooltip-title').html(Math.floor(width/$(elem).width()*100)+'%');
             }
             $(document).bind('mousemove', function(event){
               width = event.clientX-elem.offsetLeft;
@@ -815,13 +857,18 @@
               }
               $(elem).find('.v_progress').css({'width': (width/$(elem).width()*100)+'%'});
               $this.sound.setVolume(Math.floor(width/$(elem).width()*100));
-            }).bind('mouseup',function(event){$(elem).removeClass('down');$(document).unbind('mousemove').unbind('mouseup').unbind('selectstart').unbind('dragstart');$this.sound.setVolume(Math.floor(width/$(elem).width()*100));$this.volume = $this.sound['volume']}).bind('selectstart',function(event){return false; event.stopPropagation();}).bind('dragstart',function(event){return false; event.stopPropagation();});
+              $(elem).find('.a_tooltip-title').html(Math.floor(width/$(elem).width()*100)+'%');
+            }).bind('mouseup',function(event){$(elem).removeClass('down');$(document).unbind('mousemove').unbind('mouseup').unbind('selectstart').unbind('dragstart');$(this).find('.dot').removeClass('show');$(elem).bind('mouseout',function(event){$(this).find('.dot').removeClass('show');});$(elem).find('.a_tooltip').removeClass('show');$this.sound.setVolume(Math.floor(width/$(elem).width()*100));$this.volume = $this.sound['volume']}).bind('selectstart',function(event){return false; event.stopPropagation();}).bind('dragstart',function(event){return false; event.stopPropagation();});
           }).bind('mouseover',function(event){$(this).find('.dot').addClass('show');}).bind('mouseout',function(event){$(this).find('.dot').removeClass('show');});
 
           $('.btnrename').click(function(event){$this.ModalFileRename(event.currentTarget)});
           $('.btnextract').click(function(event){$this.ModalFileExtract(event.currentTarget)});
           $('.img').click(function(event){$this.ModalFileOpen(event.currentTarget)});
-          $(window).resize(function(){$('.mainbtn').css({'width': $('.mainbtn').parent().width()-100 + 'px'});$('.line').css({'width': $('.line').parent().width()-140 + 'px'}); $('.line').css({'width': $('.line').parent().width()-$('.volume').width()-50 + 'px'});});
+          $(window).resize(function(){
+            $('.mainbtn').css({'width': $('.mainbtn').parent().width()-101 + 'px'});
+            //$('.line').css({'width': $('.line').parent().width()-140 + 'px'}); 
+            //$('.line').css({'width': $('.line').parent().width()-$('.volume').width()-50 + 'px'});
+          });
           $('html').bind('dragover', function(event){
             $('.dropbox-indicator').css('display','block'); 
               return false;
@@ -901,10 +948,10 @@
                       if(sec<10){
                         sec = '0'+ sec;
                       }
-                      $('.chevron').append('<div class="LocalPlayer MainContainer"><div data-duration="'+r.response[i].duration+'" id="'+i+'" data-file="'+r.response[i].url+'" data-id="'+i+'" class="playbtn"></div><div class="mainbtn"><h6 class="title time">'+(Math.floor(r.response[i].duration/60))+':'+sec+'</h6><h5 class="title">'+r.response[i].artist+' - '+r.response[i].title+'</h5><div class="line"><div class="load"></div><div class="progress"><div class="dot"></div></div></div><div class="volume"><div class="v_progress"><div class="dot"></div></div></div></div><a class="downloadbtn" href="'+r.response[i].url+'" download></a></div>');
+                      $('.chevron').append('<div class="LocalPlayer MainContainer"><div data-duration="'+r.response[i].duration+'" id="'+i+'" data-file="'+r.response[i].url+'" data-id="'+i+'" class="playbtn"></div><div class="mainbtn"><h6 class="title time">'+(Math.floor(r.response[i].duration/60))+':'+sec+'</h6><h5 class="title">'+r.response[i].artist+' - '+r.response[i].title+'</h5><div class="line"><div class="load"></div><div class="progress"><div class="a_tooltip"><h6 class="a_tooltip-title"></h6><div class="a_triangle"></div></div><div class="dot"></div></div></div><div class="volume"><div class="v_progress"><div class="a_tooltip"><h6 class="a_tooltip-title"></h6><div class="a_triangle"></div></div><div class="dot"></div></div></div></div><a class="downloadbtn" href="'+r.response[i].url+'" download></a></div>');
                     };
-                    $('.mainbtn').css({'width': $('.mainbtn').parent().width()-100 + 'px'});
-                    $('.line').css({'width': $('.line').parent().width()-$('.volume').width()-50 + 'px'});
+                    $('.mainbtn').css({'width': $('.mainbtn').parent().width()-101 + 'px'});
+                    //$('.line').css({'width': $('.line').parent().width()-$('.volume').width()-50 + 'px'});
                     $self.unbindAll();
                     $self.bindAll();
                   } 
@@ -951,6 +998,11 @@
                     whileplaying: function(){
                       if(!$(Sevent).parent().find('.line').hasClass('down')){
                         $(Sevent).parent().find('.progress').css('width',(Math.round((this.position/1000)/duration*1000)/10)+'%');
+                        sec = Math.round(this.position/1000 - Math.floor(this.position/60000)*60);
+                        if (sec<10){
+                          sec = '0'+sec;
+                        }
+                        $(Sevent).parent().find('.line').find('.a_tooltip-title').html(Math.floor(this.position/60000) + ':' + sec);
                       }
                       sec = Math.floor(((duration-(this.position/1000))/60-Math.floor((duration-(this.position/1000))/60))*60);
                       if(sec<10){
