@@ -69,7 +69,7 @@
             <a class="navbar-brand" href="#">LocalBox</a>
             <div class="nav-collapse collapse">
               <ul class="nav navbar-nav pull-right vkinfo">
-                 
+                 <li><a style="height: 50px" id="login_button" href="#">Sign in</a></li>
               </ul>
             </div><!--/.nav-collapse -->
           </div>
@@ -418,7 +418,7 @@
       }
       .mainbtn{
         display:inline-block;
-        margin:0px 5px 0px 5px;
+        margin:0px 1% 0px 1%;
         background-color: #d5d5d5;
         float:left;
         text-overflow: ellipsis;
@@ -468,7 +468,7 @@
         position: relative;
         overflow: visible;
       }
-      .progress{
+      .a_progress{
         background-color: gray;
         height: 5px;
         width: 0%;
@@ -564,7 +564,6 @@
           // preferFlash: false,
           onready: function() {
             // Ready to use; soundManager.createSound() etc. can now be called.
-            console.log('LocalSound initialized');
           }
         });
           $('.opennav').css({'height': $(window).height()/2 + 'px'});
@@ -572,11 +571,10 @@
             apiId: 3791305
           });
           var $this = this;
-          $('.vkinfo').html('<li><a style="height: 50px" id="login_button" href="#">Sign in</a></li>');
-          $('#login_button').click(function(event){VK.Auth.login($this.authInfo(event))});
+          this.bindAll();
           //VK.UI.button('login_button');
           VK.Auth.getLoginStatus(function(event){$this.authInfo(event)});
-          this.bindAll();
+          VK.Observer.subscribe('auth.login',function(event){$this.authInfo(event)});
           /*if(window.location.hash != ''){
             ans = window.location.hash.split('#')[1].split('&');
             if(ans.length == 3){
@@ -713,8 +711,6 @@
                 $('.dropbox-modal').animate({opacity: 0}, 500, function() {$(this).remove();});
                 $('body').append('<div class="dropbox-modal"><div class="progress"><div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width:100%;"><h4>Saved with name  '+ name +'</h4></div></div></div>');
                 $('.dropbox-modal').delay(1000).animate({opacity: 0}, 800, function() {$(this).remove();})
-            } else {
-                console.log('download failed!');
             }
           }
         },
@@ -784,15 +780,6 @@
         },
         bindAll: function(){
           var $this = this;
-          $('.navbar-brand').click(function(){
-              if($('.chevron').hasClass('opennav')){
-                $('.opennav').css({'height': 0, 'background-color': '#EEEEEE'});
-                $('.chevron').removeClass('opennav');
-              }else{
-                $('.chevron').addClass('opennav');
-                $('.opennav').css({'height': $(window).height()/2 + 'px'});
-              }
-            });
             $('#ModalFile').on('hidden.bs.modal', function () {
               $('.modal-body').html('');
               $('#ModalFileLabel').html('');
@@ -815,7 +802,7 @@
             $(elem).find('.dot').addClass('show');
             $(elem).find('.a_tooltip').addClass('show');
             width = event.offsetX;
-            $(elem).find('.progress').css({'width': (width/$(elem).width()*100)+'%'});
+            $(elem).find('.a_progress').css({'width': (width/$(elem).width()*100)+'%'});
             min = Math.floor(Math.floor($(elem).parent().parent().find('.playbtn').data('duration')*width/$(elem).width())/60);
               sec = Math.round((Math.floor($(elem).parent().parent().find('.playbtn').data('duration')*width/$(elem).width())/60-Math.floor(Math.floor($(elem).parent().parent().find('.playbtn').data('duration')*width/$(elem).width())/60))*60);
               if (sec<10){
@@ -829,7 +816,7 @@
               }else if(width<0){
                 width = 0;
               }
-              $(elem).find('.progress').css({'width': (width/$(elem).width()*100)+'%'});
+              $(elem).find('.a_progress').css({'width': (width/$(elem).width()*100)+'%'});
               min = Math.floor(Math.floor($(elem).parent().parent().find('.playbtn').data('duration')*width/$(elem).width())/60);
               sec = Math.round((Math.floor($(elem).parent().parent().find('.playbtn').data('duration')*width/$(elem).width())/60-Math.floor(Math.floor($(elem).parent().parent().find('.playbtn').data('duration')*width/$(elem).width())/60))*60);
               if (sec<10){
@@ -847,6 +834,7 @@
               width = event.offsetX;
               $(elem).find('.v_progress').css({'width': (width/$(elem).width()*100)+'%'});
               $(elem).find('.a_tooltip-title').html(Math.floor(width/$(elem).width()*100)+'%');
+              $this.sound.setVolume(Math.floor(width/$(elem).width()*100));
             }
             $(document).bind('mousemove', function(event){
               width = event.clientX-elem.offsetLeft;
@@ -865,9 +853,18 @@
           $('.btnextract').click(function(event){$this.ModalFileExtract(event.currentTarget)});
           $('.img').click(function(event){$this.ModalFileOpen(event.currentTarget)});
           $(window).resize(function(){
-            $('.mainbtn').css({'width': $('.mainbtn').parent().width()-101 + 'px'});
+            $('.mainbtn').css({'width': $('.mainbtn').parent().width()*0.98-97 + 'px'});
             //$('.line').css({'width': $('.line').parent().width()-140 + 'px'}); 
             //$('.line').css({'width': $('.line').parent().width()-$('.volume').width()-50 + 'px'});
+          });
+          $('.chevron').bind('scroll',function(event){
+            if($(event.currentTarget).scrollTop() == (event.currentTarget.scrollHeight-$(event.currentTarget).height())){
+              VK.Auth.getLoginStatus(function(response) { 
+                if (response.session) {
+                  $this.getAudio(response);
+                }
+              }); 
+            }
           });
           $('html').bind('dragover', function(event){
             $('.dropbox-indicator').css('display','block'); 
@@ -891,12 +888,13 @@
               $('body').append('<div class="dropbox-modal"></div>');
             });
             $('.createfolder').click(function(event){$this.CreateFolder(event.currentTarget)});
-
+            $('#login_button').click(function(event){VK.Auth.login(function(){return false;},8)});
+            $('#logout_button').click(function(event){VK.Auth.logout($this.outInfo())});
             $('.playbtn').click(function(){
               if($this.sound == null){
                 $this.sound = $this.LBSound(this,$this);
               }else{
-                if($this.sound['id'] == $(this).data('id')){
+                if($this.sound['id'] == $(this).attr('id')){
                   if($(this).hasClass('play')){
                     $this.sound.pause(); 
                   }else{
@@ -912,7 +910,6 @@
             });
         },
         unbindAll: function(){
-          $('.navbar-brand').unbind();
           $('#ModalFile').unbind();
           $('.delete').unbind();
           $('.btnrename').unbind();
@@ -924,6 +921,9 @@
           $(window).unbind();
           $('line').unbind();
           $('.volume').unbind();
+          $('.chevron').unbind();
+          $('#login_button').unbind();
+          $('#logout_button').unbind();
         },
         CreateFolder: function(){
           var $this = this;
@@ -936,27 +936,61 @@
         authInfo: function(response) {
           var $self = this;
               if (response.session) {
+                VK.Observer.unsubscribe('auth.login');
+                $('.navbar-brand').click(function(){
+                  if($('.chevron').hasClass('opennav')){
+                    $('.opennav').css({'height': 0, 'background-color': '#EEEEEE'});
+                    $('.chevron').removeClass('opennav');
+                  }else{
+                    $('.chevron').addClass('opennav');
+                    $('.opennav').css({'height': $(window).height()/2 + 'px'});
+                  }
+                });
                 VK.Api.call('users.get', {user_ids: response.session.mid, fields:'photo_50'}, function(r) { 
                   if(r.response) { 
-                    $('.vkinfo').html('<li class="usergroup"><a href="http://vk.com/id'+r.response[0].uid+'">'+r.response[0].first_name+' '+r.response[0].last_name+'</a></li><li class="divider-vertical usergroup"></li><li class="dropdown usergroup"><a href="#" class="dropdown-toggle photo_50drop" data-toggle="dropdown"><img class="photo_50" src="'+r.response[0].photo_50+'"></a><ul class="dropdown-menu"><li><a href="#">Action</a></li><li><a href="/signout.php">Sign out</a></li></ul></li>');
+                    $('.vkinfo').html('<li class="usergroup"><a href="http://vk.com/id'+r.response[0].uid+'">'+r.response[0].first_name+' '+r.response[0].last_name+'</a></li><li class="divider-vertical usergroup"></li><li class="dropdown usergroup"><a href="#" class="dropdown-toggle photo_50drop" data-toggle="dropdown"><img class="photo_50" src="'+r.response[0].photo_50+'"></a><ul class="dropdown-menu"><li><a id="logout_button">Sign out</a></li></ul></li>');
                   } 
                 });
-                VK.Api.call('audio.get', {owner_id: response.session.mid, access_token:response.session.sig,count:100}, function(r) { 
-                  if(r.response) { 
-                    for (var i = 1; i <= r.response.length-1; i++) {
-                      sec = Math.round((r.response[i].duration/60-Math.floor(r.response[i].duration/60))*60);
-                      if(sec<10){
-                        sec = '0'+ sec;
-                      }
-                      $('.chevron').append('<div class="LocalPlayer MainContainer"><div data-duration="'+r.response[i].duration+'" id="'+i+'" data-file="'+r.response[i].url+'" data-id="'+i+'" class="playbtn"></div><div class="mainbtn"><h6 class="title time">'+(Math.floor(r.response[i].duration/60))+':'+sec+'</h6><h5 class="title">'+r.response[i].artist+' - '+r.response[i].title+'</h5><div class="line"><div class="load"></div><div class="progress"><div class="a_tooltip"><h6 class="a_tooltip-title"></h6><div class="a_triangle"></div></div><div class="dot"></div></div></div><div class="volume"><div class="v_progress"><div class="a_tooltip"><h6 class="a_tooltip-title"></h6><div class="a_triangle"></div></div><div class="dot"></div></div></div></div><a class="downloadbtn" href="'+r.response[i].url+'" download></a></div>');
-                    };
-                    $('.mainbtn').css({'width': $('.mainbtn').parent().width()-101 + 'px'});
-                    //$('.line').css({'width': $('.line').parent().width()-$('.volume').width()-50 + 'px'});
-                    $self.unbindAll();
-                    $self.bindAll();
-                  } 
-                });  
+                $self.unbindAll();
+                $self.bindAll();
+                $self.getAudio(response); 
               }
+        },
+        outInfo: function(){
+          var $self = this;
+          $('.vkinfo').html('<li><a style="height: 50px" id="login_button" href="#">Sign in</a></li>');
+          $self.unbindAll();
+          $self.bindAll();
+          $('.navbar-brand').unbind();
+          VK.Observer.subscribe('auth.login',function(event){$self.authInfo(event)});
+        },
+        getAudio: function(response){
+          $self = this;
+          if(!$('.chevron').hasClass('loading')){
+            if($('.chevron .LocalPlayer:last-child').find('.playbtn').attr('id') == undefined){
+              var pref = 0;
+            }else{
+              var pref = $('.chevron .LocalPlayer:last-child').find('.playbtn').attr('id')*1+1;
+            }
+            VK.Api.call('audio.get', {owner_id: response.session.mid, access_token:response.session.sig,count:30,offset:pref*1}, function(r) { 
+              if(r.response) { 
+                for (var i = 1; i <= r.response.length-1; i++) {
+                  sec = Math.round((r.response[i].duration/60-Math.floor(r.response[i].duration/60))*60);
+                    if(sec<10){
+                      sec = '0'+ sec;
+                    }
+                  $('.chevron').append('<div class="LocalPlayer MainContainer"><div data-duration="'+r.response[i].duration+'" id="'+(i*1+pref*1)+'" data-file="'+r.response[i].url+'" class="playbtn"></div><div class="mainbtn"><h6 class="title time">'+(Math.floor(r.response[i].duration/60))+':'+sec+'</h6><h5 class="title">'+r.response[i].artist+' - '+r.response[i].title+'</h5><div class="line"><div class="load"></div><div class="a_progress"><div class="a_tooltip"><h6 class="a_tooltip-title"></h6><div class="a_triangle"></div></div><div class="dot"></div></div></div><div class="volume"><div class="v_progress"><div class="a_tooltip"><h6 class="a_tooltip-title"></h6><div class="a_triangle"></div></div><div class="dot"></div></div></div></div><a class="downloadbtn" href="'+r.response[i].url+'" download></a></div>');
+                  $self.unbindAll();
+                  $self.bindAll();
+                };
+                $('.mainbtn').css({'width': $('.mainbtn').parent().parent().parent().width()*0.97-97 + 'px'});
+                //$('.line').css({'width': $('.line').parent().width()-$('.volume').width()-50 + 'px'});
+                $self.unbindAll();
+                $self.bindAll();
+                $('.chevron').removeClass('loading');
+              } 
+            }); 
+          }
         },
         LBSound: function(Sevent,main){
           id = $(Sevent).attr('id');
@@ -987,7 +1021,7 @@
                         $('.pause').parent().find('.time').html((Math.floor(prev_duration/60))+':'+sec);  
                         $('.playbtn').removeClass('pause');
                       }
-                      $('.progress').css('width','0%');
+                      $('.a_progress').css('width','0%');
                       $('.line').removeClass('show');
                       $('.volume').removeClass('show');
                       $(Sevent).parent().find('.line').addClass('show');
@@ -997,7 +1031,7 @@
                     },
                     whileplaying: function(){
                       if(!$(Sevent).parent().find('.line').hasClass('down')){
-                        $(Sevent).parent().find('.progress').css('width',(Math.round((this.position/1000)/duration*1000)/10)+'%');
+                        $(Sevent).parent().find('.a_progress').css('width',(Math.round((this.position/1000)/duration*1000)/10)+'%');
                         sec = Math.round(this.position/1000 - Math.floor(this.position/60000)*60);
                         if (sec<10){
                           sec = '0'+sec;
